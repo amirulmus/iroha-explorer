@@ -1,0 +1,11 @@
+doctype html
+html
+  head
+    title= title
+    link(type='text/css' rel='stylesheet' href='/css/iroha-explorer.min.css')
+    link(type='image/png' rel='shortcut icon' href='/media/favicon.png')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+  body
+    div(class='container')
+      h1= error.status + ' ' + message
+      pre= error.stack

@@ -1,0 +1,64 @@
+{
+  "name": "@diva.exchange/iroha-explorer",
+  "version": "0.1.0",
+  "description": "diva - Distributed value exchange upholding security, reliability and privacy",
+  "keywords": [
+    "iroha",
+    "blockchain",
+    "distributed",
+    "value",
+    "exchange",
+    "crypto",
+    "asset"
+  ],
+  "author": "Konrad Baechler <konrad@diva.exchange> (https://diva.exchange)",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://codeberg.org/diva.exchange/iroha-explorer.git"
+  },
+  "scripts": {
+    "lint": "eslint --fix app/src",
+    "css-build": "node-sass --omit-source-map-url --output-style compressed app/static/sass/iroha-explorer.scss app/static/css/iroha-explorer.min.css",
+    "start": "node -r esm app/bin/iroha-explorer",
+    "test": "nyc mocha"
+  },
+  "dependencies": {
+    "@diva.exchange/diva-logger": "^0.2.5",
+    "compression": "^1.7.4",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
+    "pg": "^8.3.0",
+    "pug": "^3.0.0"
+  },
+  "devDependencies": {
+    "bulma": "^0.9.0",
+    "chai": "^4.2.0",
+    "eslint": "^7.4.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "mocha": "^8.0.1",
+    "node-sass": "^4.14.1",
+    "nyc": "^15.1.0",
+    "umbrellajs": "^3.2.3"
+  },
+  "mocha": {
+    "require": [
+      "esm"
+    ],
+    "spec": "app/test/**/*.spec.js"
+  },
+  "nyc": {
+    "reporter": [
+      "html",
+      "text-summary"
+    ],
+    "include": [
+      "app/src/**/*.js"
+    ]
+  }
+}

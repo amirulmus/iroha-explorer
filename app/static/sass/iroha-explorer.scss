@@ -1,0 +1,29 @@
+@charset "utf-8";
+
+@keyframes fadein {
+    from { opacity: 0; visibility: visible; }
+    to   { opacity: 1; visibility: visible; }
+}
+
+@keyframes fadeout {
+    from { opacity: 1; visibility: visible; }
+    to   { opacity: 0; visibility: hidden; }
+}
+
+.fadein {
+  animation: fadein 1s linear forwards;
+}
+
+.fadeout {
+  animation: fadeout 1s linear forwards;
+}
+
+section.section {
+  padding: 1em 0 1.5em;
+}
+
+article.article {
+  padding: 0 0.5em;
+}
+
+@import "../../../node_modules/bulma/bulma";
