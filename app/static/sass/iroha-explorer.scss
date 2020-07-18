@@ -18,12 +18,21 @@
   animation: fadeout 1s linear forwards;
 }
 
+html.error {
+  h1 {
+    font-size: 4rem
+  }
+  h1 span.error-status {
+    padding-right: 1rem
+  }
+}
+
 section.section {
-  padding: 1em 0 1.5em;
+  padding: 1rem 0 1.5rem;
 }
 
 article.article {
-  padding: 0 0.5em;
+  padding: 0 0.5rem;
 }
 
 @import "../../../node_modules/bulma/bulma";

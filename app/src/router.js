@@ -51,9 +51,10 @@ export class Router {
     this._app.use(express.json())
 
     // routes
-    this._app.get('/', (req, res) => {
-      res.render('main')
-    })
+    this._app.get('/', (req, res) => { this._main(req, res) })
+    this._app.get('/peers', (req, res) => { this._main(req, res) })
+    this._app.get('/accounts', (req, res) => { this._main(req, res) })
+    this._app.get('/transactions', (req, res) => { this._main(req, res) })
 
     // catch unavailable favicon.ico
     this._app.get('/favicon.ico', (req, res) => res.sendStatus(204))
@@ -85,6 +86,7 @@ export class Router {
     Logger.trace(req.originalUrl).warn(err)
 
     // set locals, only providing error in development
+    res.locals.status = err.status
     res.locals.message = err.message
     res.locals.error = req.app.get('env') === 'development' ? err : {}
 
@@ -100,6 +102,16 @@ export class Router {
       })
     }
   }
+
+  /**
+   * @param req
+   * @param res
+   * @private
+   */
+  _main (req, res) {
+    res.render('main')
+  }
+
 }
 
 module.exports = { Router }

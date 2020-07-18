@@ -22,11 +22,10 @@
 
 import http from 'http'
 import net from 'net'
+import fs from 'fs'
 
 import { Logger } from '@diva.exchange/diva-logger'
 import { Router } from './router'
-
-const IROHA_POSTGRES = '127.0.0.1:5432'
 
 export class IrohaExplorer {
   /**
@@ -34,29 +33,38 @@ export class IrohaExplorer {
    *
    * @param ip {string}
    * @param port {number}
-   * @return {IrohaExplorer|false}
+   * @param path {string}
+   * @param postgres {string}
+   * @return {IrohaExplorer}
+   * @throws {Error}
    * @private
    */
-  static async make (ip = '127.0.0.1', port = 3900) {
-    // check availability of Iroha Blockchain
-    try {
-      await IrohaExplorer._isAvailable(IROHA_POSTGRES)
-      return new IrohaExplorer(ip, port)
-    } catch (error) {
-      Logger.error(error)
+  static async make (ip, port, path, postgres) {
+    if (!fs.existsSync(path)) {
+      throw new Error(path + ' not found')
     }
 
-    return false
+    try {
+      await IrohaExplorer._isAvailable(postgres)
+    } catch (error) {
+      throw new Error(error)
+    }
+
+    return new IrohaExplorer(ip, port, path, postgres)
   }
 
   /**
-   * @param ip
-   * @param port
+   * @param ip {string}
+   * @param port {number}
+   * @param path {string}
+   * @param postgres {string}
    * @private
    */
-  constructor (ip, port) {
+  constructor (ip, port, path, postgres) {
     this._ip = ip
     this._port = port
+    this._path = path
+    this._postgres = postgres
 
     this._router = new Router()
     this._router.getApp().set('port', this._port)
@@ -68,8 +76,11 @@ export class IrohaExplorer {
     this._server.on('close', () => {
       Logger.info(`HttpServer closing on ${this._ip}:${this._port}`)
     })
-    this._server.on('error', this._onError.bind(this))
     this._server.listen(this._port, this._ip)
+
+    fs.watch(this._path, (eventType, filename) => {
+      Logger.trace(eventType).trace(filename)
+    })
   }
 
   /**
@@ -77,28 +88,6 @@ export class IrohaExplorer {
    */
   getHttpServer () {
     return this._server
-  }
-
-  /**
-   * @param error
-   * @private
-   */
-  _onError (error) {
-    if (error.syscall !== 'listen') {
-      throw error
-    }
-
-    // handle specific listen errors with friendly messages
-    switch (error.code) {
-      case 'EACCES':
-        Logger.error(`${this._ip}:${this._port} requires elevated privileges`)
-        break
-      case 'EADDRINUSE':
-        Logger.error(`${this._ip}:${this._port} is already in use`)
-        break
-    }
-
-    throw error
   }
 
   /**

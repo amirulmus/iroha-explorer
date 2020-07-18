@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Iroha Explorer
  *
@@ -21,15 +20,22 @@
 
 'use strict'
 
-import { IrohaExplorer } from '../src/iroha-explorer'
+import { IrohaExplorer } from './iroha-explorer.js'
+import { Logger } from '@diva.exchange/diva-logger'
 
 import process from 'process'
 
-const ip = process.env.IP || '127.0.0.1'
-const port = process.env.PORT || 3900
+const ip = process.env.IP_EXPLORER || '127.0.0.1'
+const port = process.env.PORT_EXPLORER || 3900
+const path = process.env.PATH_BLOCKSTORE_IROHA || '/tmp/iroha-blockstore/'
+const postgres = process.env.POSTGRES_HOST_IROHA || '127.18.1.1:5432' // 'iroha:5432'
 
-const explorer = IrohaExplorer.make(ip, port)
-
-process.once('SIGINT', () => {
-  explorer.getHttpServer().close(() => { process.exit(0) })
-})
+IrohaExplorer.make(ip, port, path, postgres)
+  .then((explorer) => {
+    process.once('SIGINT', () => {
+      explorer.getHttpServer().close(() => { process.exit(0) })
+    })
+  })
+  .catch((error) => {
+    Logger.error(error)
+  })

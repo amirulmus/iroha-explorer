@@ -20,7 +20,8 @@
   "scripts": {
     "lint": "eslint --fix app/src",
     "css-build": "node-sass --omit-source-map-url --output-style compressed app/static/sass/iroha-explorer.scss app/static/css/iroha-explorer.min.css",
-    "start": "node -r esm app/bin/iroha-explorer",
+    "start-dev": "node -r esm app/src/main.js",
+    "start": "NODE_ENV=production node -r esm app/src/main.js",
     "test": "nyc mocha"
   },
   "dependencies": {
