@@ -1,0 +1,9 @@
+each row in arrayPeer
+  tr
+    td(class='publickey')
+      span(data-id=row.public_key)= row.public_key
+    td(class='address')
+      span(data-id=row.public_key)= row.address
+  tr
+    td(id='peer-data-' + row.public_key class='data is-hidden' colspan='2')
+

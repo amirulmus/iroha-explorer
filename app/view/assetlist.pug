@@ -1,0 +1,14 @@
+each row in arrayAsset
+  tr
+    td(class='marker' data-id=asset_id)
+      span(data-id=asset_id class='icon')
+        i(class='fas fa-angle-right')
+    td(class='assetid')
+      a(data-id=row.asset_id)= row.asset_id
+    td(class='domainid')= row.domain_id
+    td(class='precision')= row.precision
+  tr
+    td(class='data' colspan='4')= JSON.stringify(row.data, null, 2)
+  tr
+    td(data-id=row.asset_id class='data is-hidden' colspan='4')
+

@@ -1,0 +1,9 @@
+each row in arrayDomain
+  tr
+    td(class='domainid')
+      span(data-id=row.domain_id)= row.domain_id
+    td(class='defaultrole')
+      span(data-id=row.domain_id)= row.default_role
+  tr
+    td(id='domain-data-' + row.domain_id class='data is-hidden' colspan='2')
+

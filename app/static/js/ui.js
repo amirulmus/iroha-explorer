@@ -23,13 +23,13 @@
 'use strict'
 
 // wait for rendered UI and available dependencies to initialize JS
-setTimeout( () => { __initUi() }, 10)
+setTimeout( () => { __initUi() }, 100)
 function __initUi () {
   // check if umbrella and DOM is already available
   if (!u || !WebSocket || !fetch) {
     setTimeout(() => {
       __initUi()
-    }, 20)
+    }, 50)
     return
   }
 
@@ -41,6 +41,15 @@ class Ui {
    * @public
    */
   static make () {
+    // load non-critical css
+    u('link[rel="preload"][as="style"]').attr('rel', 'stylesheet')
+
+    // menu
+    u('a.navbar-item').removeClass('is-active')
+    u('a.navbar-item[href="' + window.location.pathname + '"]').length ?
+      u('a.navbar-item[href="' + window.location.pathname + '"]').addClass('is-active') :
+      u(u('a.navbar-item').first()).addClass('is-active')
+
     // mobile menu
     u('.navbar-burger').off('click').handle('click', () => {
       // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
@@ -48,14 +57,25 @@ class Ui {
       u('.navbar-menu').toggleClass('is-active')
     })
 
-    // notifications
-    u('#modal-notification').removeClass('is-active')
-    u('#modal-notification .message-header p').text('')
-    u('#modal-notification .message-body p').text('')
-
     Ui._initWebsocket()
 
-    Ui._fetchBlocks()
+    switch (window.location.pathname) {
+      case '/':
+      case '/ui/blocks':
+        Ui._fetchBlocks()
+        break
+      case '/ui/peers-domains-roles':
+        Ui._fetchPeers()
+        Ui._fetchDomains()
+        Ui._fetchRoles()
+        break
+      case '/ui/accounts':
+        Ui._fetchAccounts()
+        break
+      case '/ui/assets':
+        Ui._fetchAssets()
+        break
+    }
   }
 
   /**
@@ -71,6 +91,81 @@ class Ui {
         u('#heightBlockchain').text(response.height)
         u('#search input').first().value = response.filter
         u('table.blocks tbody').html(response.html)
+        Ui._attachEvents()
+      })
+  }
+
+  /**
+   * @param q {string}
+   * @private
+   */
+  static _fetchPeers (q = '') {
+    fetch('/peers?q=' + q)
+      .then((response) => {
+        return response.json()
+      })
+      .then((response) => {
+        u('table.peers tbody').html(response.html)
+        Ui._attachEvents()
+      })
+  }
+
+  /**
+   * @param q {string}
+   * @private
+   */
+  static _fetchDomains (q = '') {
+    fetch('/domains?q=' + q)
+      .then((response) => {
+        return response.json()
+      })
+      .then((response) => {
+        u('table.domains tbody').html(response.html)
+        Ui._attachEvents()
+      })
+  }
+
+  /**
+   * @param q {string}
+   * @private
+   */
+  static _fetchRoles (q = '') {
+    fetch('/roles?q=' + q)
+      .then((response) => {
+        return response.json()
+      })
+      .then((response) => {
+        u('table.roles tbody').html(response.html)
+        Ui._attachEvents()
+      })
+  }
+
+  /**
+   * @param q {string}
+   * @private
+   */
+  static _fetchAccounts (q = '') {
+    fetch('/accounts?q=' + q)
+      .then((response) => {
+        return response.json()
+      })
+      .then((response) => {
+        u('table.accounts tbody').html(response.html)
+        Ui._attachEvents()
+      })
+  }
+
+  /**
+   * @param q {string}
+   * @private
+   */
+  static _fetchAssets (q = '') {
+    fetch('/assets?q=' + q)
+      .then((response) => {
+        return response.json()
+      })
+      .then((response) => {
+        u('table.assets tbody').html(response.html)
         Ui._attachEvents()
       })
   }
@@ -101,6 +196,11 @@ class Ui {
       let obj
       try {
         obj = JSON.parse(event.data)
+        u('#status-update').removeClass('is-hidden')
+        setTimeout(() => {
+          u('#status-update').addClass('is-hidden')
+        }, 3000)
+
         switch (obj.cmd || '') {
           case 'block':
             u('#heightBlockchain').text(obj.height)
@@ -118,16 +218,6 @@ class Ui {
   }
 
   /**
-   * @param header {string}
-   * @param body {string}
-   */
-  static message (header, body) {
-    u('#modal-notification .message-header p').text(header)
-    u('#modal-notification .message-body p').text(body)
-    u('#modal-notification').addClass('is-active')
-  }
-
-  /**
    * @private
    */
   static _attachEvents () {
@@ -136,30 +226,43 @@ class Ui {
       Ui._fetchBlocks(encodeURIComponent(u('input.search').first().value))
     })
 
-    // notifications
-    u('#modal-notification .modal-background, #modal-notification button.delete').off('click')
-      .handle('click', () => {
-        u('#modal-notification').removeClass('is-active')
-        u('#modal-notification .message-header p').text('')
-        u('#modal-notification .message-body p').text('')
-      })
-
     // load block data
     u('table.blocks td span, table.blocks td a').off('click').handle('click', async (e) => {
       const idBlock = u(e.currentTarget).data('id')
 
+      const d = u('td.data[data-id="' + idBlock + '"]')
       let response = {}
-      if (u('#block-data-' + idBlock).text() === '') {
+      if (d.text() === '') {
         response = await (await fetch('/block?q=' + idBlock)).json()
         if (response) {
-          u('#block-data-' + idBlock).text(JSON.stringify(response, null, 2))
+          d.text(JSON.stringify(response, null, 2))
         }
       }
 
-      if (u('#block-data-' + idBlock).text() !== '') {
-        u('#block-data-' + idBlock).toggleClass('is-hidden')
+      if (d.text() !== '') {
+        d.toggleClass('is-hidden')
         u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('fa-angle-down')
         u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('fa-angle-right')
+      }
+    })
+
+    // load account data
+    u('table.accounts td span, table.accounts td a').off('click').handle('click', async (e) => {
+      const idAccount = u(e.currentTarget).data('id')
+
+      const d = u('td.data[data-id="' + idAccount + '"]')
+      let response = {}
+      if (d.text() === '') {
+        response = await (await fetch('/account?q=' + idAccount)).json()
+        if (response) {
+          d.text(JSON.stringify(response, null, 2))
+        }
+      }
+
+      if (d.text() !== '') {
+        d.toggleClass('is-hidden')
+        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('fa-angle-down')
+        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('fa-angle-right')
       }
     })
   }

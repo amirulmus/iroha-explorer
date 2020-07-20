@@ -1,0 +1,10 @@
+each row in arrayAccount
+  tr
+    td(class='accountid')= row.account_id
+    td(class='domainid')= row.domain_id
+    td(class='quorum')= row.quorum
+  tr
+    td(class='data' colspan='3')= JSON.stringify(row.data, null, 2)
+  tr
+    td(data-id=row.account_id class='data is-hidden' colspan='3')
+

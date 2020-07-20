@@ -1,5 +1,7 @@
 @charset "utf-8";
 
+@import "../../../node_modules/bulma/bulma";
+
 @keyframes fadein {
     from { opacity: 0; visibility: visible; }
     to   { opacity: 1; visibility: visible; }
@@ -39,8 +41,13 @@ article.article {
   padding-left: 1rem;
 }
 
-table.blocks {
+table.blocks, table.accounts, table.assets {
   table-layout: fixed;
+
+  tr td {
+    border: none;
+    border-top: 1px solid $border;
+  }
 
   th.marker {
     width: 2%;
@@ -51,9 +58,10 @@ table.blocks {
   }
 
   td.data {
-    background-color: #efefef;
+    border: none;
     font-family: monospace;
     font-size: 0.75rem;
+    padding-left: 3rem;
     white-space: pre-wrap;
     word-break: break-all;
   }
@@ -64,5 +72,3 @@ div.summary {
     padding-left: 1rem;
   }
 }
-
-@import "../../../node_modules/bulma/bulma";

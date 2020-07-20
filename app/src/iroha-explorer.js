@@ -22,14 +22,17 @@
 
 'use strict'
 
+import { Client } from 'pg'
 import dateFormat from 'dateformat'
+import fs from 'fs'
 import http from 'http'
 import net from 'net'
-import fs from 'fs'
 import ws from 'ws'
 
 import { Logger } from '@diva.exchange/diva-logger'
 import { Router } from './router'
+
+const IROHA_RETRY_CONNECTION_MS = 5000
 
 export class IrohaExplorer {
   /**
@@ -99,12 +102,16 @@ export class IrohaExplorer {
     })
 
     this._initFileWatcher()
+    this._connectPostgres()
   }
 
   /**
    * @returns {Promise<any>}
    */
   shutdown () {
+    if (this._dbClient) {
+      this._dbClient.end()
+    }
     if (this._watcher) {
       this._watcher.close()
     }
@@ -157,6 +164,36 @@ export class IrohaExplorer {
   }
 
   /**
+   * @private
+   */
+  _connectPostgres () {
+    const [hostname, port] = this._postgres.split(':', 2)
+    this._dbClient = new Client({
+      host: hostname,
+      port: port,
+      database: 'iroha_data',
+      user: 'explorer',
+      password: 'explorer'
+    })
+
+    this._dbClient.connect()
+      .then(() => {
+        // only after a successful connection attach an error handler
+        this._dbClient.once('error', (error) => {
+          Logger.warn(error)
+          delete this._dbClient
+          const now = Date.now()
+          setTimeout(() => { this._connect() },
+            (now - this._lastRetryConnection < IROHA_RETRY_CONNECTION_MS) ? IROHA_RETRY_CONNECTION_MS : 1)
+          this._lastRetryConnection = now
+        })
+      })
+      .catch((error) => {
+        Logger.error(error)
+      })
+  }
+
+  /**
    * Check whether a service on the network is listening
    *
    * @param host {string} hostname:port, like localhost:443
@@ -193,34 +230,72 @@ export class IrohaExplorer {
         this._getBlocks(
           parseInt(req.query.pagesize || 0),
           parseInt(req.query.page || 0),
-          (req.query.q || '').replace(/[^\w\-+*[\]().,;:]/gi, ''))
-          .then((data) => res.json(data))
-          .catch(() => res.status(404).json(false))
+          (req.query.q || '').replace(/[^\w\-+*[\]().,;:]/gi, '')
+        )
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
         break
       case '/block':
         data = req.query.q ? this._getBlock(req.query.q) : false
         data ? res.json(data) : res.status(404).json(false)
         break
-      case '/ui/peers':
-        res.render('peers')
+      case '/ui/peers-domains-roles':
+        res.render('peers-domains-roles')
         break
       case '/peers':
-        data = this._getPeers(req, res)
-        res.json(data)
+        this._getPeers(req.query.q || '')
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
+        break
+      case '/domains':
+        this._getDomains(req.query.q || '')
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
+        break
+      case '/roles':
+        this._getRoles(req.query.q || '')
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
         break
       case '/ui/accounts':
         res.render('accounts')
         break
       case '/accounts':
-        data = this._getAccounts(req, res)
-        res.json(data)
+        this._getAccounts(req.query.q || '')
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
         break
-      case '/ui/transactions':
-        res.render('transactions')
+      case '/ui/assets':
+        res.render('assets')
         break
-      case '/transactions':
-        data = this._getTransactions(req, res)
-        res.json(data)
+      case '/assets':
+        this._getAssets(req.query.q || '')
+          .then((data) => {
+            res.json(data)
+          })
+          .catch(() => {
+            res.status(404).json(false)
+          })
         break
       default:
         next()
@@ -308,30 +383,128 @@ export class IrohaExplorer {
   }
 
   /**
-   * @param req
-   * @param res
+   * @param q {string}
+   * @returns {Promise<{filter: string, peers: *, html: any}>}
    * @private
    */
-  _getPeers (req, res) {
-    return this._postgres
+  async _getPeers (q = '') {
+    try {
+      const data = await this._dbClient.query('SELECT * FROM peer')
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('peerlist', { arrayPeer: data.rows }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
+
+      return {
+        peers: data.rows,
+        filter: q,
+        html: html
+      }
+    } catch (error) {
+      Logger.warn(error)
+      throw new Error(error)
+    }
   }
 
   /**
-   * @param req
-   * @param res
+   * @param q {string}
+   * @returns {Promise<{filter: string, peers: *, html: any}>}
    * @private
    */
-  _getAccounts (req, res) {
-    return this._postgres
+  async _getDomains (q = '') {
+    try {
+      const data = await this._dbClient.query('SELECT * FROM domain')
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('domainlist', { arrayDomain: data.rows }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
+
+      return {
+        domains: data.rows,
+        filter: q,
+        html: html
+      }
+    } catch (error) {
+      Logger.warn(error)
+      throw new Error(error)
+    }
   }
 
   /**
-   * @param req
-   * @param res
+   * @param q {string}
+   * @returns {Promise<{filter: string, peers: *, html: any}>}
    * @private
    */
-  _getTransactions (req, res) {
-    return this._postgres
+  async _getRoles (q = '') {
+    try {
+      const data = await this._dbClient.query('SELECT * FROM role LEFT JOIN role_has_permissions USING (role_id)')
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('rolelist', { arrayRole: data.rows }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
+
+      return {
+        roles: data.rows,
+        filter: q,
+        html: html
+      }
+    } catch (error) {
+      Logger.warn(error)
+      throw new Error(error)
+    }
+  }
+
+  /**
+   * @param q {string}
+   * @returns {Promise<{filter: string, peers: *, html: any}>}
+   * @private
+   */
+  async _getAccounts (q = '') {
+    try {
+      const data = await this._dbClient.query('SELECT * FROM account')
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('accountlist', { arrayAccount: data.rows }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
+
+      return {
+        accounts: data.rows,
+        filter: q,
+        html: html
+      }
+    } catch (error) {
+      Logger.warn(error)
+      throw new Error(error)
+    }
+  }
+
+  /**
+   * @param q {string}
+   * @returns {Promise<{filter: string, peers: *, html: any}>}
+   * @private
+   */
+  async _getAssets (q = '') {
+    try {
+      const data = await this._dbClient.query('SELECT * FROM asset')
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('assetlist', { arrayAsset: data.rows }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
+
+      return {
+        assets: data.rows,
+        filter: q,
+        html: html
+      }
+    } catch (error) {
+      Logger.warn(error)
+      throw new Error(error)
+    }
   }
 }
 

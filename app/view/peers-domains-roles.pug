@@ -1,0 +1,33 @@
+extends layout
+
+block content
+
+  article(class='peers')
+    h1(class='is-size-1 mt-4') Peers
+
+    table(class='peers table is-fullwidth')
+      thead
+        tr
+          th Public Key
+          th Address
+      tbody
+
+  article(class='domains')
+    h1(class='is-size-1 mt-4') Domains
+
+    table(class='domains table is-fullwidth')
+      thead
+        tr
+          th Domain Id
+          th Default Role
+      tbody
+
+  article(class='roles')
+    h1(class='is-size-1 mt-4') Roles
+
+    table(class='roles table is-fullwidth')
+      thead
+        tr
+          th Role Id
+          th Permission
+      tbody

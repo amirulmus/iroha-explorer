@@ -1,0 +1,9 @@
+each row in arrayRole
+  tr
+    td(class='roleid')
+      span(data-id=row.role_id)= row.role_id
+    td(class='permission')
+      span(data-id=row.role_id)= row.permission
+  tr
+    td(id='role-data-' + row.role_id class='data is-hidden' colspan='2')
+
