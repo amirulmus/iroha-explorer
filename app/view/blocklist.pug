@@ -1,0 +1,12 @@
+each arr in arrayBlock
+  tr
+    td(class='marker' data-id=arr[0])
+      span(data-id=arr[0] class='icon')
+        i(class='fas fa-angle-right')
+    td(class='datetime')
+      a(data-id=arr[0])= arr[1]
+    td(class='block')
+      a(data-id=arr[0])= arr[0]
+  tr
+    td(id='block-data-' + arr[0] class='data is-hidden' colspan='3')
+

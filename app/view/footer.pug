@@ -1,6 +1,13 @@
 nav(class='navbar container is-fixed-bottom is-light is-hidden-touch')
   div(class='navbar-start')
     div(class='navbar-item')
-      span(class='is-large') some
-      span(class='is-large') :&nbsp;
-        span(id='account' class='has-text-weight-bold') stuff
+      span(class='is-large') Connection
+      span(id='status-connection' class='has-text-weight-bold has-text-danger')
+        i(class='status-connection fas')
+
+  div(class='navbar-end')
+    div(class='navbar-item')
+      span(class='is-large') &copy;&nbsp;
+        a(href='https://diva.exchange' target='_blank') diva.exchange
+      span(class='is-large') &nbsp;|&nbsp;
+        a(href='/LICENSE.txt' target='_blank') GPLv3

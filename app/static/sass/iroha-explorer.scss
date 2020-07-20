@@ -35,4 +35,34 @@ article.article {
   padding: 0 0.5rem;
 }
 
+#status-connection {
+  padding-left: 1rem;
+}
+
+table.blocks {
+  table-layout: fixed;
+
+  th.marker {
+    width: 2%;
+  }
+  td.marker {
+    cursor: pointer;
+    padding: 0.5em 0;
+  }
+
+  td.data {
+    background-color: #efefef;
+    font-family: monospace;
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+}
+
+div.summary {
+  .height {
+    padding-left: 1rem;
+  }
+}
+
 @import "../../../node_modules/bulma/bulma";

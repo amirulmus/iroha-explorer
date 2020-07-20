@@ -32,8 +32,13 @@ const postgres = process.env.POSTGRES_HOST_IROHA || '127.18.1.1:5432' // 'iroha:
 
 IrohaExplorer.make(ip, port, path, postgres)
   .then((explorer) => {
-    process.once('SIGINT', () => {
-      explorer.getHttpServer().close(() => { process.exit(0) })
+    process.on('SIGINT', async () => {
+      try {
+        await explorer.shutdown()
+      } catch (error) {
+        Logger.error(error)
+      }
+      process.exit(0)
     })
   })
   .catch((error) => {

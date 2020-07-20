@@ -1,14 +1,34 @@
-nav(class='navbar container is-fixed-top is-transparent is-dark' role='navigation' aria-label='main navigation')
+nav(class='navbar container is-fixed-top is-light' role='navigation' aria-label='main navigation')
+
   div(class='navbar-brand')
-
-    a(class='navbar-burger burger' role='button' data-target='navigation-main' aria-label='menu' aria-expanded='false')
+    a(role='button' class='navbar-burger' data-target='main-menu' aria-label='menu' aria-expanded='false')
       span(aria-hidden='true')
       span(aria-hidden='true')
       span(aria-hidden='true')
 
-  div(class='navbar-menu' id='navigation-main')
+  div(id='main-menu' class='navbar-menu')
     div(class='navbar-start')
-      a(class='navbar-item' href='/')
+      a(class='navbar-item is-tab' href='/ui/blocks')
         span(class='icon')
-          i(class='fas fa-expand')
-        span= Blocks
+          i(class='fas fa-layer-group')
+        span Blocks
+      a(class='navbar-item is-tab' href='/ui/peers')
+        span(class='icon')
+          i(class='fas fa-network-wired')
+        span Peers
+      a(class='navbar-item is-tab' href='/ui/accounts')
+        span(class='icon')
+          i(class='fas fa-users')
+        span Accounts
+      a(class='navbar-item is-tab' href='/ui/transactions')
+        span(class='icon')
+          i(class='fas fa-stream')
+        span Transactions
+
+div(class='container mt-3')
+  form(id='search')
+    div(class='field')
+      div(class='control has-icons-left is-expanded')
+        input(class='input is-medium search' type='text' name='q' placeholder='Filter')
+        span(class='icon is-medium is-left')
+          i(class='fas fa-search')

@@ -29,10 +29,11 @@ import { Logger } from '@diva.exchange/diva-logger'
 
 export class Router {
   /**
+   * @param routeHandler {Function}
    * @throws {Error}
    * @protected
    */
-  constructor () {
+  constructor (routeHandler) {
     /** @type {Function} */
     this._app = express()
     // generic
@@ -51,10 +52,7 @@ export class Router {
     this._app.use(express.json())
 
     // routes
-    this._app.get('/', (req, res) => { this._main(req, res) })
-    this._app.get('/peers', (req, res) => { this._main(req, res) })
-    this._app.get('/accounts', (req, res) => { this._main(req, res) })
-    this._app.get('/transactions', (req, res) => { this._main(req, res) })
+    this._app.use(routeHandler)
 
     // catch unavailable favicon.ico
     this._app.get('/favicon.ico', (req, res) => res.sendStatus(204))
@@ -102,16 +100,6 @@ export class Router {
       })
     }
   }
-
-  /**
-   * @param req
-   * @param res
-   * @private
-   */
-  _main (req, res) {
-    res.render('main')
-  }
-
 }
 
 module.exports = { Router }

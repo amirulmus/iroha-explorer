@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  article(class='blocks')
+    h1(class='is-size-1 mt-4') Blocks
+
+    div(class='summary')
+      p Blockchain Height:
+        span(id='heightBlockchain' class='height')
+
+    table(class='blocks table is-fullwidth')
+      thead
+        tr
+          th(class='marker')
+          th Date/Time (UTC)
+          th Block
+      tbody
+
