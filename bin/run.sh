@@ -26,7 +26,7 @@ set -e
 PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 cd ${PROJECT_PATH}/../
 
-IP_EXPLORER=${IP_EXPLORER:-"127.0.0.1"}
+IP_EXPLORER=${IP_EXPLORER:-"0.0.0.0"}
 PORT_EXPLORER=${PORT_EXPLORER:-3900}
 NAME_VOLUME_IROHA=${NAME_VOLUME_IROHA:-"p2p-iroha1"}
 POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA:-"p2p-iroha1:5432"}
@@ -40,6 +40,7 @@ docker run \
   --env PATH_BLOCKSTORE_IROHA="/tmp/iroha-blockstore/" \
   --env POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA} \
   -v ${NAME_VOLUME_IROHA}:/tmp/iroha-blockstore:ro \
-  --network ${NAME_NETWORK}
+  -p 127.0.0.1:3915:3900 \
+  --network ${NAME_NETWORK} \
   --name=iroha-explorer \
   divax/iroha-explorer:latest

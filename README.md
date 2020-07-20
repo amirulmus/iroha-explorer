@@ -18,16 +18,19 @@ Adapt the following settings (environment variables, volume and network) to your
 If your Testnet is up and running, run the Iroha Explorer:
 ```
 docker run \
-  -d 
-  --env IP_EXPLORER=127.0.0.1 \
+  -d \
+  --env IP_EXPLORER="0.0.0.0" \
   --env PORT_EXPLORER=3900 \
-  --env PATH_BLOCKSTORE_IROHA="/tmp/iroha-blockstore/" \
+  --env PATH_BLOCKSTORE_IROHA="/tmp/iroha-blockstore/blockstore/" \
   --env POSTGRES_HOST_IROHA="p2p-iroha1:5432" \
   -v p2p-iroha1:/tmp/iroha-blockstore:ro \
-  --network diva-p2p-net1
+  -p 127.0.0.1:3915:3900 \
+  --network diva-p2p-net1 \
   --name iroha-explorer \
   divax/iroha-explorer:latest
 ```
+
+Navigate to http://localhost:3915 to access the Iroha Explorer.
 
 ### Build from Source
 
