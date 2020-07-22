@@ -54,7 +54,7 @@ Prepare your environment:
 Now start the explorer (set the enviroment variables according to your environment):
 ```
 npm i
-IP=127.0.0.1 PORT=3900 PATH_BLOCKSTORE_IROHA=/tmp/iroha-blockstore/ POSTGRES_HOST_IROHA=127.0.0.1:5432 node -r esm app/src/main.js
+IP=127.0.0.1 PORT=3900 PATH_BLOCKSTORE_IROHA=/tmp/iroha-blockstore/ POSTGRES_HOST_IROHA=127.0.0.1:5432 node -r esm app/main.js
 ```
 
 ## Contact the Developers

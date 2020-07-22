@@ -44,7 +44,7 @@ export class IrohaExplorer {
    * @param postgres {string}
    * @return {IrohaExplorer}
    * @throws {Error}
-   * @private
+   * @public
    */
   static async make (ip, port, path, postgres) {
     if (!fs.existsSync(path)) {

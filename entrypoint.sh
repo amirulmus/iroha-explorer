@@ -24,7 +24,13 @@
 set -e
 
 # catch SIGINT and SIGTERM
-trap "pkill -SIGTERM node ; exit 0" SIGTERM SIGINT
+trap "pkill -SIGTERM node ; sleep 5 ; exit 0" SIGTERM SIGINT
 
-NODE_ENV=production
-node -r esm app/src/main.js
+NODE_ENV=${NODE_ENV:-production}
+su node -c "NODE_ENV=production node -r esm app/main.js 2>&1"
+
+# wait forever
+while true
+do
+  tail -f /dev/null & wait ${!}
+done
