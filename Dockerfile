@@ -42,11 +42,10 @@ RUN cd /home/node/ \
   && chown -R node:node "/home/node" \
   && chmod +x /entrypoint.sh
 
-VOLUME [ "/home/node/" ]
-WORKDIR "/home/node/"
-USER "node"
-
 # 3900 explorer app
 EXPOSE 3900
 
+VOLUME [ "/home/node/" ]
+WORKDIR "/home/node/"
+USER "node"
 ENTRYPOINT ["/entrypoint.sh"]

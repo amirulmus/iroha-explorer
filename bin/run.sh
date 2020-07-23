@@ -32,15 +32,18 @@ NAME_VOLUME_IROHA=${NAME_VOLUME_IROHA:-"p2p-iroha1"}
 POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA:-"p2p-iroha1:5432"}
 NAME_NETWORK=${NAME_NETWORK:-"diva-p2p-net1"}
 
+IP_EXPOSE=${IP_EXPOSE:-"127.0.0.1"}
+PORT_EXPOSE=${PORT_EXPOSE:-3900}
+
 # start the container
 docker run \
   -d \
   --env IP_EXPLORER=${IP_EXPLORER} \
   --env PORT_EXPLORER=${PORT_EXPLORER} \
-  --env PATH_BLOCKSTORE_IROHA="/tmp/iroha-blockstore/" \
+  --env PATH_BLOCKSTORE_IROHA="/tmp/iroha/blockstore/" \
   --env POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA} \
-  -v ${NAME_VOLUME_IROHA}:/tmp/iroha-blockstore:ro \
-  -p 127.0.0.1:3915:3900 \
+  -v ${NAME_VOLUME_IROHA}:/tmp/iroha:ro \
+  -p ${IP_EXPOSE}:${PORT_EXPOSE}:3900 \
   --network ${NAME_NETWORK} \
   --name=iroha-explorer \
   divax/iroha-explorer:latest
