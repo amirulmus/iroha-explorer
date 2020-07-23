@@ -175,7 +175,7 @@ class Ui {
    */
   static _initWebsocket () {
     // connect to local websocket
-    Ui.websocket = new WebSocket('ws://' + document.location.host)
+    Ui.websocket = new WebSocket((/s:/.test(document.location.protocol) ? 'wss://' : 'ws://') + document.location.host)
 
     // Connection opened
     Ui.websocket.addEventListener('open', () => {

@@ -103,6 +103,21 @@ export class IrohaExplorer {
 
     this._initFileWatcher()
     this._connectPostgres()
+    this._pingWebsocket()
+  }
+
+  /**
+   * @private
+   */
+  _pingWebsocket () {
+    this._webSocket.forEach(async (ws) => {
+      try {
+        await ws.ping()
+      } catch (error) {
+        Logger.warn(error)
+      }
+    })
+    setTimeout(() => { this._pingWebsocket() }, 30000)
   }
 
   /**
