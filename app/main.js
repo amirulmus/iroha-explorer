@@ -21,25 +21,22 @@
 'use strict'
 
 import { IrohaExplorer } from './src/iroha-explorer.js'
-import { Logger } from '@diva.exchange/diva-logger'
 
 import process from 'process'
 
-const ip = process.env.IP_EXPLORER || '0.0.0.0'
-const port = process.env.PORT_EXPLORER || 3900
-const path = process.env.PATH_BLOCKSTORE_IROHA || '/tmp/iroha-blockstore/'
-const postgres = process.env.POSTGRES_HOST_IROHA || '127.18.1.1:5432' // 'iroha:5432'
+(async () => {
+  const ip = process.env.IP_EXPLORER || '0.0.0.0'
+  const port = process.env.PORT_EXPLORER || 3900
+  const path = process.env.PATH_BLOCKSTORE_IROHA || '/tmp/iroha-blockstore/'
+  const postgres = process.env.POSTGRES_HOST_IROHA || '127.18.1.1:5432' // 'iroha:5432'
 
-IrohaExplorer.make(ip, port, path, postgres)
-  .then((explorer) => {
-    for (const sig of ['SIGINT', 'SIGTERM']) {
-      process.once(sig, () => {
-        explorer.shutdown().then(() => {
-          process.exit(0)
-        })
+  const explorer = await IrohaExplorer.make(ip, port, path, postgres)
+
+  for (const sig of ['SIGINT', 'SIGTERM']) {
+    process.once(sig, () => {
+      explorer.shutdown().then(() => {
+        process.exit(0)
       })
-    }
-  })
-  .catch((error) => {
-    Logger.error(error)
-  })
+    })
+  }
+})()
