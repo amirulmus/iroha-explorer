@@ -1,6 +1,9 @@
-nav(class='navbar container is-fixed-top is-light' role='navigation' aria-label='main navigation')
+nav(class='navbar container is-fixed-top top' role='navigation' aria-label='main navigation')
 
   div(class='navbar-brand')
+    a(class='navbar-item' href='https://diva.exchange' target='_blank')
+      img(src='/media/diva-exchange-text-logo.png' width='220' height='37')
+
     a(role='button' class='navbar-burger' data-target='main-menu' aria-label='menu' aria-expanded='false')
       span(aria-hidden='true')
       span(aria-hidden='true')
@@ -10,17 +13,17 @@ nav(class='navbar container is-fixed-top is-light' role='navigation' aria-label=
     div(class='navbar-start')
       a(class='navbar-item is-tab' href='/ui/blocks')
         span(class='icon')
-          i(class='fas fa-layer-group')
+          i(class='icon-layer-group')
         span Blocks
       a(class='navbar-item is-tab' href='/ui/peers-domains-roles')
         span(class='icon')
-          i(class='fas fa-network-wired')
+          i(class='icon-network-wired')
         span Peers, Domains, Roles
       a(class='navbar-item is-tab' href='/ui/accounts')
         span(class='icon')
-          i(class='fas fa-users')
+          i(class='icon-users')
         span Accounts
       a(class='navbar-item is-tab' href='/ui/assets')
         span(class='icon')
-          i(class='fas fa-stream')
+          i(class='icon-stream')
         span Assets

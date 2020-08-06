@@ -25,7 +25,7 @@
     "test": "nyc mocha"
   },
   "dependencies": {
-    "@diva.exchange/diva-logger": "^0.2.5",
+    "@diva.exchange/diva-logger": "^1.0.0",
     "compression": "^1.7.4",
     "dateformat": "^3.0.3",
     "esm": "^3.2.25",
@@ -38,13 +38,13 @@
   "devDependencies": {
     "bulma": "^0.9.0",
     "chai": "^4.2.0",
-    "eslint": "^7.5.0",
+    "eslint": "^7.6.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "mocha": "^8.0.1",
+    "mocha": "^8.1.1",
     "node-sass": "^4.14.1",
     "nyc": "^15.1.0",
     "umbrellajs": "^3.2.3"

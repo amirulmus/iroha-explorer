@@ -101,9 +101,14 @@ export class IrohaExplorer {
       })
     })
 
+    this._mapBlockCache = new Map()
+
     this._initFileWatcher()
     this._connectPostgres()
     this._pingWebsocket()
+
+    // warm up cache
+    this._getBlocks()
   }
 
   /**
@@ -338,9 +343,18 @@ export class IrohaExplorer {
 
     const map = new Map()
     arrayNameFile.forEach((nameFile) => {
-      if (filter.length < 3 || (new RegExp(filter, 'i')).test(fs.readFileSync(this._path + nameFile))) {
-        map.set(nameFile,
-          dateFormat(fs.statSync(this._path + nameFile).mtime.toUTCString(), 'dd/mmm/yyyy HH:MM:ss', true))
+      const key = this._path + nameFile
+      if (!this._mapBlockCache.has(key)) {
+        try {
+          const json = JSON.parse(fs.readFileSync(key))
+          this._mapBlockCache.set(key,
+            dateFormat(Math.floor(json.blockV1.payload.createdTime || 1), 'dd/mmm/yyyy HH:MM:ss', true))
+        } catch (error) {
+          Logger.warn('_getBlocks() - json').warn(error)
+        }
+      }
+      if (filter.length < 3 || (new RegExp(filter, 'i')).test(content)) {
+        map.set(nameFile, this._mapBlockCache.get(key))
       }
     })
 
@@ -360,7 +374,7 @@ export class IrohaExplorer {
         html: html
       }
     }).catch((error) => {
-      Logger.warn(error)
+      Logger.warn('_getBlocks() - Promise').warn(error)
     })
   }
 

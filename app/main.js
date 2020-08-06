@@ -28,7 +28,7 @@ import process from 'process'
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
   const port = process.env.PORT_EXPLORER || 3900
   const path = process.env.PATH_BLOCKSTORE_IROHA || '/tmp/iroha-blockstore/'
-  const postgres = process.env.POSTGRES_HOST_IROHA || '127.18.1.1:5432' // 'iroha:5432'
+  const postgres = process.env.POSTGRES_HOST_IROHA || '127.19.1.1:10032' // 'iroha:5432'
 
   const explorer = await IrohaExplorer.make(ip, port, path, postgres)
 

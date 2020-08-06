@@ -2,30 +2,36 @@
 
 @import "../../../node_modules/bulma/bulma";
 
-@keyframes fadein {
-    from { opacity: 0; visibility: visible; }
-    to   { opacity: 1; visibility: visible; }
-}
-
-@keyframes fadeout {
-    from { opacity: 1; visibility: visible; }
-    to   { opacity: 0; visibility: hidden; }
-}
-
-.fadein {
-  animation: fadein 1s linear forwards;
-}
-
-.fadeout {
-  animation: fadeout 1s linear forwards;
-}
-
 html.error {
   h1 {
     font-size: 4rem
   }
   h1 span.error-status {
     padding-right: 1rem
+  }
+}
+
+nav.navbar.top, .navbar-menu {
+  background-color: #0f4057;
+  min-height: 70px;
+
+  .navbar-item img {
+    max-height: none;
+    margin-right: 30px;
+  }
+
+  .navbar-item, .navbar-burger {
+    color: #ffffff;
+  }
+
+  .navbar-item.is-tab.is-active {
+    border-bottom-color: #dbf514;
+    color: #dbf514;
+  }
+
+  .navbar-item.is-tab:focus, .navbar-item.is-tab:hover {
+    border-bottom-color: #dbf514;
+    color: #dbf514;
   }
 }
 

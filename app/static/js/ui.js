@@ -42,7 +42,7 @@ class Ui {
    */
   static make () {
     // load non-critical css
-    u('link[rel="preload"][as="style"]').attr('rel', 'stylesheet')
+    // u('link[rel="preload"][as="style"]').attr('rel', 'stylesheet')
 
     // menu
     u('a.navbar-item').removeClass('is-active')
@@ -180,13 +180,13 @@ class Ui {
     // Connection opened
     Ui.websocket.addEventListener('open', () => {
       u('#status-connection').removeClass('has-text-danger').addClass('has-text-success')
-      u('#status-connection i').removeClass('fa-times').addClass('fa-check')
+      u('#status-connection i').removeClass('icon-times').addClass('icon-check')
     })
 
     // Connection closed
     Ui.websocket.addEventListener('close', () => {
       u('#status-connection').removeClass('has-text-success').addClass('has-text-danger')
-      u('#status-connection i').removeClass('fa-check').addClass('fa-times')
+      u('#status-connection i').removeClass('icon-check').addClass('icon-times')
       Ui.websocket = null
       setTimeout(() => { Ui._initWebsocket() }, 2000)
     })
@@ -241,8 +241,8 @@ class Ui {
 
       if (d.text() !== '') {
         d.toggleClass('is-hidden')
-        u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('fa-angle-down')
-        u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('fa-angle-right')
+        u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('icon-angle-down')
+        u('td.marker[data-id="' + idBlock + '"] span i').toggleClass('icon-angle-right')
       }
     })
 
@@ -261,8 +261,8 @@ class Ui {
 
       if (d.text() !== '') {
         d.toggleClass('is-hidden')
-        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('fa-angle-down')
-        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('fa-angle-right')
+        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('icon-angle-down')
+        u('td.marker[data-id="' + idAccount + '"] span i').toggleClass('icon-angle-right')
       }
     })
   }
