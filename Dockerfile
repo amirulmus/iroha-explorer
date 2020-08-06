@@ -35,10 +35,8 @@ COPY app /home/node/app
 # Entrypoint
 COPY entrypoint.sh /
 
-ENV NPM_CONFIG_LOGLEVEL warn
-
 RUN cd /home/node/ \
-  && npm install --production \
+  && npm install --only=production \
   && chown -R node:node "/home/node" \
   && chmod +x /entrypoint.sh
 
