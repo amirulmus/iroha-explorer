@@ -353,7 +353,7 @@ export class IrohaExplorer {
           Logger.warn('_getBlocks() - json').warn(error)
         }
       }
-      if (filter.length < 3 || (new RegExp(filter, 'i')).test(content)) {
+      if (filter.length < 3 || (new RegExp(filter, 'i')).test(fs.readFileSync(key))) {
         map.set(nameFile, this._mapBlockCache.get(key))
       }
     })
