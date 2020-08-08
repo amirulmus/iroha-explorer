@@ -48,7 +48,7 @@ class Ui {
     u('a.navbar-item').removeClass('is-active')
     u('a.navbar-item[href="' + window.location.pathname + '"]').length ?
       u('a.navbar-item[href="' + window.location.pathname + '"]').addClass('is-active') :
-      u(u('a.navbar-item').first()).addClass('is-active')
+      u(u('.navbar-menu a.navbar-item').first()).addClass('is-active')
 
     // mobile menu
     u('.navbar-burger').off('click').handle('click', () => {
