@@ -22,13 +22,11 @@
 
 import { IrohaExplorer } from './src/iroha-explorer.js'
 
-import process from 'process'
-
 (async () => {
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
   const port = process.env.PORT_EXPLORER || 3900
-  const path = process.env.PATH_BLOCKSTORE_IROHA || '/tmp/iroha-blockstore/'
-  const postgres = process.env.POSTGRES_HOST_IROHA || '127.19.1.1:10032' // 'iroha:5432'
+  const path = process.env.PATH_IROHA || '/tmp/iroha/'
+  const postgres = process.env.POSTGRES_HOST_IROHA || 'postgres.diva.local:5432'
 
   const explorer = await IrohaExplorer.make(ip, port, path, postgres)
 

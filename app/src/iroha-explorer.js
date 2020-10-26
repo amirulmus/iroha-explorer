@@ -26,6 +26,7 @@ import dateFormat from 'dateformat'
 import fs from 'fs'
 import http from 'http'
 import net from 'net'
+import path from 'path'
 import ws from 'ws'
 
 import { Logger } from '@diva.exchange/diva-logger'
@@ -39,15 +40,15 @@ export class IrohaExplorer {
    *
    * @param ip {string}
    * @param port {number}
-   * @param path {string}
+   * @param pathIroha {string}
    * @param postgres {string}
    * @return {IrohaExplorer}
    * @throws {Error}
    * @public
    */
-  static async make (ip, port, path, postgres) {
-    if (!fs.existsSync(path)) {
-      throw new Error(path + ' not found')
+  static async make (ip, port, pathIroha, postgres) {
+    if (!fs.existsSync(pathIroha)) {
+      throw new Error(pathIroha + ' not found')
     }
 
     try {
@@ -56,20 +57,21 @@ export class IrohaExplorer {
       throw new Error(error)
     }
 
-    return new IrohaExplorer(ip, port, path, postgres)
+    return new IrohaExplorer(ip, port, pathIroha, postgres)
   }
 
   /**
    * @param ip {string}
    * @param port {number}
-   * @param path {string}
+   * @param pathIroha {string}
    * @param postgres {string}
    * @private
    */
-  constructor (ip, port, path, postgres) {
+  constructor (ip, port, pathIroha, postgres) {
     this._ip = ip
     this._port = port
-    this._path = path
+    this._pathData = path.join(pathIroha, 'data')
+    this._pathBlockstore = path.join(pathIroha, 'blockstore')
     this._postgres = postgres
 
     this._router = new Router((req, res, next) => { this._routeHandler(req, res, next) })
@@ -153,11 +155,12 @@ export class IrohaExplorer {
       setTimeout(() => { this._initFileWatcher() }, 5000)
     }
 
-    this._watcher = fs.watch(this._path, (eventType, nameFile) => {
+    this._watcher = fs.watch(this._pathBlockstore, (eventType, nameFile) => {
       let dt = ''
       switch (eventType) {
         case 'change':
-          dt = dateFormat(fs.statSync(this._path + nameFile).mtime.toUTCString(), 'dd/mmm/yyyy HH:MM:ss', true)
+          dt = dateFormat(fs.statSync(path.join(this._pathBlockstore, nameFile)).mtime.toUTCString(),
+            'dd/mmm/yyyy HH:MM:ss', true)
           this._router.getApp().render('blocklist', { arrayBlock: [[nameFile, dt]] }, (error, html) => {
             if (!error) {
               this._webSocket.forEach((ws) => {
@@ -187,12 +190,17 @@ export class IrohaExplorer {
    */
   _connectPostgres () {
     const [hostname, port] = this._postgres.split(':', 2)
+
+    // load the config file
+    Logger.info('Reading config from: ' + path.join(this._pathData, 'config-P2P.json'))
+    const config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config-P2P.json')))
+
     this._dbClient = new Client({
       host: hostname,
       port: port,
-      database: 'iroha_data',
-      user: 'explorer',
-      password: 'explorer'
+      database: config.database["working database"],
+      user: config.database.user,
+      password: config.database.password
     })
 
     this._dbClient.connect()
@@ -342,7 +350,7 @@ export class IrohaExplorer {
 
     const map = new Map()
     arrayNameFile.forEach((nameFile) => {
-      const key = this._path + nameFile
+      const key = path.join(this._pathBlockstore, nameFile)
       if (!this._mapBlockCache.has(key)) {
         try {
           const json = JSON.parse(fs.readFileSync(key))
@@ -385,7 +393,7 @@ export class IrohaExplorer {
    */
   _getArrayBlockFile (sorted = false, limit = 0) {
     const arrayNameFile = []
-    for (const nameFile of fs.readdirSync(this._path)) {
+    for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
       if (nameFile.match(/^[0-9]{16}$/)) {
         arrayNameFile.push(nameFile)
         if (limit && arrayNameFile.length === limit) {
@@ -403,7 +411,7 @@ export class IrohaExplorer {
    */
   _getBlock (nameFile) {
     try {
-      return JSON.parse(fs.readFileSync(this._path + nameFile))
+      return JSON.parse(fs.readFileSync(path.join(this._pathBlockstore, nameFile)))
     } catch (error) {
       Logger.error(error)
       return false

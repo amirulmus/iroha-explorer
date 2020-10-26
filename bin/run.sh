@@ -28,9 +28,9 @@ cd ${PROJECT_PATH}/../
 
 IP_EXPLORER=${IP_EXPLORER:-"0.0.0.0"}
 PORT_EXPLORER=${PORT_EXPLORER:-3900}
-NAME_VOLUME_IROHA=${NAME_VOLUME_IROHA:-"p2p-iroha1"}
-POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA:-"p2p-iroha1:5432"}
-NAME_NETWORK=${NAME_NETWORK:-"diva-p2p-net1"}
+NAME_VOLUME_IROHA=${NAME_VOLUME_IROHA:-"iroha-local-p2p"}
+POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA:-"postgres.diva.local:5432"}
+NAME_NETWORK=${NAME_NETWORK:-"docker-compose_iroha-testnet-p2p"}
 
 IP_EXPOSE=${IP_EXPOSE:-"127.0.0.1"}
 PORT_EXPOSE=${PORT_EXPOSE:-3900}
@@ -40,7 +40,7 @@ docker run \
   -d \
   --env IP_EXPLORER=${IP_EXPLORER} \
   --env PORT_EXPLORER=${PORT_EXPLORER} \
-  --env PATH_BLOCKSTORE_IROHA="/tmp/iroha/blockstore/" \
+  --env PATH_IROHA="/tmp/iroha/" \
   --env POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA} \
   -v ${NAME_VOLUME_IROHA}:/tmp/iroha:ro \
   -p ${IP_EXPOSE}:${PORT_EXPOSE}:3900 \
