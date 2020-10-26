@@ -22,16 +22,12 @@ FROM node:lts-alpine
 
 LABEL author="Konrad Baechler <konrad@diva.exchange>" \
   maintainer="Konrad Baechler <konrad@diva.exchange>" \
-  name="diva" \
+  name="diva-iroha-explorer" \
   description="Distributed value exchange upholding security, reliability and privacy" \
   url="https://diva.exchange"
 
-COPY package.json /home/node/package.json
-
-# Applications
 COPY app /home/node/app
-
-# Entrypoint
+COPY package.json /home/node/package.json
 COPY entrypoint.sh /
 
 RUN cd /home/node/ \
