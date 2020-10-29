@@ -43,10 +43,6 @@ export class IrohaExplorer {
    * @public
    */
   static async make (ip, port, pathIroha) {
-    if (!fs.existsSync(pathIroha)) {
-      throw new Error(pathIroha + ' not found')
-    }
-
     return new IrohaExplorer(ip, port, pathIroha)
   }
 
@@ -95,9 +91,6 @@ export class IrohaExplorer {
     this._initFileWatcher()
     this._connectPostgres()
     this._pingWebsocket()
-
-    // warm up cache
-    this._getBlocks()
   }
 
   /**
@@ -178,14 +171,21 @@ export class IrohaExplorer {
    * @private
    */
   _connectPostgres () {
-    // load the config file
-    Logger.info('Reading config from: ' + path.join(this._pathData, 'config.json'))
-    const config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
+    let config = {}
+    try {
+      // load the config file
+      Logger.info('Reading config from: ' + path.join(this._pathData, 'config.json'))
+      config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
+    } catch (error) {
+      Logger.warn(error)
+      setTimeout(() => { this._connectPostgres() }, 10000)
+      return
+    }
 
     this._dbClient = new Client({
-      host: '172.20.101.2',
-      port: config.port,
-      database: config.database["working database"],
+      host: config.database.host,
+      port: config.database.port,
+      database: config.database['working database'],
       user: config.database.user,
       password: config.database.password
     })
@@ -202,8 +202,8 @@ export class IrohaExplorer {
    * @param error {Error}
    * @private
    */
-  _errorPostgres(error) {
-    Logger.error(error)
+  _errorPostgres (error) {
+    Logger.warn(error)
     delete this._dbClient
     setTimeout(() => { this._connectPostgres() }, 10000)
   }
@@ -361,13 +361,17 @@ export class IrohaExplorer {
    */
   _getArrayBlockFile (sorted = false, limit = 0) {
     const arrayNameFile = []
-    for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
-      if (nameFile.match(/^[0-9]{16}$/)) {
-        arrayNameFile.push(nameFile)
-        if (limit && arrayNameFile.length === limit) {
-          break
+    try {
+      for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
+        if (nameFile.match(/^[0-9]{16}$/)) {
+          arrayNameFile.push(nameFile)
+          if (limit && arrayNameFile.length === limit) {
+            break
+          }
         }
       }
+    } catch (error) {
+      Logger.warn(error)
     }
     return sorted ? arrayNameFile : arrayNameFile.sort()
   }
@@ -381,7 +385,7 @@ export class IrohaExplorer {
     try {
       return JSON.parse(fs.readFileSync(path.join(this._pathBlockstore, nameFile)))
     } catch (error) {
-      Logger.error(error)
+      Logger.warn(error)
       return false
     }
   }

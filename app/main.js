@@ -24,7 +24,7 @@ import { IrohaExplorer } from './src/iroha-explorer.js'
 
 (async () => {
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
-  const port = process.env.PORT_EXPLORER || 3900
+  const port = process.env.PORT_EXPLORER || 3920
   const path = process.env.PATH_IROHA || '/tmp/iroha/'
 
   const explorer = await IrohaExplorer.make(ip, port, path)

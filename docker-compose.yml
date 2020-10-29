@@ -24,19 +24,19 @@ services:
     build: .
     image: divax/iroha-explorer:latest
     environment:
-      IP_EXPLORER: ${IP_EXPLORER:-0.0.0.0}
-      PORT_EXPLORER: ${PORT_EXPLORER:-3900}
+      IP_EXPLORER: 0.0.0.0
+      PORT_EXPLORER: 3900
       PATH_IROHA: /tmp/iroha/
     ports:
-      - ${IP_EXPOSE:-127.0.0.1}:${PORT_EXPOSE:-3900}:${PORT_EXPLORER:-3900}
+      - 3920:3900
     volumes:
-      - iroha-a-testnet-i2p:/tmp/iroha/:ro
+      - iroha-a-testnet:/tmp/iroha/:ro
     networks:
-      iroha-testnet-i2p:
+      iroha-testnet:
 
 volumes:
-  iroha-a-testnet-i2p:
+  iroha-a-testnet:
     external: true
 networks:
-  iroha-testnet-i2p:
+  iroha-testnet:
     external: true
