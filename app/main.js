@@ -26,9 +26,8 @@ import { IrohaExplorer } from './src/iroha-explorer.js'
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
   const port = process.env.PORT_EXPLORER || 3900
   const path = process.env.PATH_IROHA || '/tmp/iroha/'
-  const postgres = process.env.POSTGRES_HOST_IROHA || 'postgres.diva.local:5432'
 
-  const explorer = await IrohaExplorer.make(ip, port, path, postgres)
+  const explorer = await IrohaExplorer.make(ip, port, path)
 
   for (const sig of ['SIGINT', 'SIGTERM']) {
     process.once(sig, () => {

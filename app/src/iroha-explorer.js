@@ -25,14 +25,11 @@ import { Client } from 'pg'
 import dateFormat from 'dateformat'
 import fs from 'fs'
 import http from 'http'
-import net from 'net'
 import path from 'path'
 import ws from 'ws'
 
 import { Logger } from '@diva.exchange/diva-logger'
 import { Router } from './router'
-
-const IROHA_RETRY_CONNECTION_MS = 5000
 
 export class IrohaExplorer {
   /**
@@ -41,38 +38,29 @@ export class IrohaExplorer {
    * @param ip {string}
    * @param port {number}
    * @param pathIroha {string}
-   * @param postgres {string}
    * @return {IrohaExplorer}
    * @throws {Error}
    * @public
    */
-  static async make (ip, port, pathIroha, postgres) {
+  static async make (ip, port, pathIroha) {
     if (!fs.existsSync(pathIroha)) {
       throw new Error(pathIroha + ' not found')
     }
 
-    try {
-      await IrohaExplorer._isAvailable(postgres)
-    } catch (error) {
-      throw new Error(error)
-    }
-
-    return new IrohaExplorer(ip, port, pathIroha, postgres)
+    return new IrohaExplorer(ip, port, pathIroha)
   }
 
   /**
    * @param ip {string}
    * @param port {number}
    * @param pathIroha {string}
-   * @param postgres {string}
    * @private
    */
-  constructor (ip, port, pathIroha, postgres) {
+  constructor (ip, port, pathIroha) {
     this._ip = ip
     this._port = port
     this._pathData = path.join(pathIroha, 'data')
     this._pathBlockstore = path.join(pathIroha, 'blockstore')
-    this._postgres = postgres
 
     this._router = new Router((req, res, next) => { this._routeHandler(req, res, next) })
     this._router.getApp().set('port', this._port)
@@ -153,6 +141,7 @@ export class IrohaExplorer {
     }
     if (!this._getArrayBlockFile(false, 1).length) {
       setTimeout(() => { this._initFileWatcher() }, 5000)
+      return
     }
 
     this._watcher = fs.watch(this._pathBlockstore, (eventType, nameFile) => {
@@ -189,15 +178,13 @@ export class IrohaExplorer {
    * @private
    */
   _connectPostgres () {
-    const [hostname, port] = this._postgres.split(':', 2)
-
     // load the config file
-    Logger.info('Reading config from: ' + path.join(this._pathData, 'config-P2P.json'))
-    const config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config-P2P.json')))
+    Logger.info('Reading config from: ' + path.join(this._pathData, 'config.json'))
+    const config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
 
     this._dbClient = new Client({
-      host: hostname,
-      port: port,
+      host: '172.20.101.2',
+      port: config.port,
       database: config.database["working database"],
       user: config.database.user,
       password: config.database.password
@@ -206,38 +193,19 @@ export class IrohaExplorer {
     this._dbClient.connect()
       .then(() => {
         // only after a successful connection attach an error handler
-        this._dbClient.once('error', (error) => {
-          Logger.warn(error)
-          delete this._dbClient
-          const now = Date.now()
-          setTimeout(() => { this._connect() },
-            (now - this._lastRetryConnection < IROHA_RETRY_CONNECTION_MS) ? IROHA_RETRY_CONNECTION_MS : 1)
-          this._lastRetryConnection = now
-        })
+        this._dbClient.once('error', (error) => this._errorPostgres(error))
       })
-      .catch((error) => {
-        Logger.error(error)
-      })
+      .catch((error) => this._errorPostgres(error))
   }
 
   /**
-   * Check whether a service on the network is listening
-   *
-   * @param host {string} hostname:port, like localhost:443
-   * @returns {Promise<void>}
+   * @param error {Error}
    * @private
    */
-  static _isAvailable (host) {
-    return new Promise((resolve, reject) => {
-      const [hostname, port] = host.split(':', 2)
-      const socket = net.createConnection({ port: port, host: hostname }, () => {
-        socket.destroy()
-        resolve()
-      })
-        .on('error', (error) => {
-          reject(error)
-        })
-    })
+  _errorPostgres(error) {
+    Logger.error(error)
+    delete this._dbClient
+    setTimeout(() => { this._connectPostgres() }, 10000)
   }
 
   /**

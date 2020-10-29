@@ -28,7 +28,7 @@ Prepare your environment:
 Now start the explorer (set the enviroment variables according to your environment):
 ```
 npm i
-IP=127.0.0.1 PORT=3900 PATH_IROHA=/tmp/iroha/ POSTGRES_HOST_IROHA=iroha-postgres:5432 node -r esm app/main.js
+IP=127.0.0.1 PORT=3900 PATH_IROHA=/tmp/iroha/ node -r esm app/main.js
 ```
 
 ## Contact the Developers
