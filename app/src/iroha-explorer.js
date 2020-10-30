@@ -1,23 +1,23 @@
 /**
-*  Iroha Explorer
-*
-*  Copyright (C) 2020 diva.exchange
-*
-*  This program is free software: you can redistribute it and/or modify
-*  it under the terms of the GNU Affero General Public License as published by
-*  the Free Software Foundation, either version 3 of the License, or
-*  (at your option) any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU Affero General Public License for more details.
-*
-*  You should have received a copy of the GNU Affero General Public License
-*  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*
-*  Author: Konrad Bächler, https://diva.exchange
-*/
+ * Iroha Explorer
+ *
+ * Copyright (C) 2020 diva.exchange
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Konrad Bächler, https://diva.exchange
+ */
 
 'use strict'
 
@@ -133,7 +133,7 @@ export class IrohaExplorer {
       this._watcher.close()
     }
     if (!this._getArrayBlockFile(false, 1).length) {
-      setTimeout(() => { this._initFileWatcher() }, 5000)
+      setTimeout(() => { this._initFileWatcher() }, 30000)
       return
     }
 
@@ -178,7 +178,7 @@ export class IrohaExplorer {
       config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
     } catch (error) {
       Logger.warn(error)
-      setTimeout(() => { this._connectPostgres() }, 10000)
+      setTimeout(() => { this._connectPostgres() }, 30000)
       return
     }
 
@@ -205,7 +205,7 @@ export class IrohaExplorer {
   _errorPostgres (error) {
     Logger.warn(error)
     delete this._dbClient
-    setTimeout(() => { this._connectPostgres() }, 10000)
+    setTimeout(() => { this._connectPostgres() }, 30000)
   }
 
   /**

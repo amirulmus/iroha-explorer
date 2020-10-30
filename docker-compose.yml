@@ -19,24 +19,108 @@
 
 version: "3.7"
 services:
+  iroha-postgres:
+    container_name: iroha-postgres
+    image: postgres:10
+    command: -c max_prepared_transactions=100
+    environment:
+      POSTGRES_USER: iroha
+      POSTGRES_PASSWORD: iroha
+    volumes:
+      - type: volume
+        source: iroha-postgres
+        target: /var/lib/postgresql/data/
+    networks:
+      iroha-explorer-testnet:
+        ipv4_address: 172.10.191.200
+
+  iroha-a-explorer-testnet:
+    container_name: iroha-a-explorer-testnet
+    image: divax/iroha:latest
+    environment:
+      TYPE: NONE
+      BLOCKCHAIN_NETWORK: testnet-explorer-local
+      NAME_KEY: testnet-a
+    volumes:
+      - type: volume
+        source: iroha-a-explorer-testnet
+        target: /opt/iroha
+    networks:
+      iroha-explorer-testnet:
+        ipv4_address: 172.10.191.201
+    extra_hosts:
+      - testnet-b.diva:172.10.191.202
+      - testnet-c.diva:172.10.191.203
+
+  iroha-b-explorer-testnet:
+    container_name: iroha-b-explorer-testnet
+    image: divax/iroha:latest
+    environment:
+      TYPE: NONE
+      BLOCKCHAIN_NETWORK: testnet-explorer-local
+      NAME_KEY: testnet-b
+    volumes:
+      - type: volume
+        source: iroha-b-explorer-testnet
+        target: /opt/iroha
+    networks:
+      iroha-explorer-testnet:
+        ipv4_address: 172.10.191.202
+    extra_hosts:
+      - testnet-a.diva:172.10.191.201
+      - testnet-c.diva:172.10.191.203
+
+  iroha-c-explorer-testnet:
+    container_name: iroha-c-explorer-testnet
+    image: divax/iroha:latest
+    environment:
+      TYPE: NONE
+      BLOCKCHAIN_NETWORK: testnet-explorer-local
+      NAME_KEY: testnet-c
+    volumes:
+      - type: volume
+        source: iroha-c-explorer-testnet
+        target: /opt/iroha
+    networks:
+      iroha-explorer-testnet:
+        ipv4_address: 172.10.191.203
+    extra_hosts:
+      - testnet-a.diva:172.10.191.201
+      - testnet-b.diva:172.10.191.202
+
   iroha-explorer:
     container_name: iroha-explorer
-    build: .
     image: divax/iroha-explorer:latest
+    build: .
     environment:
       IP_EXPLORER: 0.0.0.0
-      PORT_EXPLORER: 3900
+      PORT_EXPLORER: 3920
       PATH_IROHA: /tmp/iroha/
     ports:
-      - 3920:3900
+      - 127.0.0.1:3922:3920
     volumes:
-      - iroha-a-testnet:/tmp/iroha/:ro
+      - iroha-a-explorer-testnet:/tmp/iroha/:ro
+      - iroha-explorer-testnet:/home/node/
     networks:
-      iroha-testnet:
+      iroha-explorer-testnet:
+        ipv4_address: 172.10.191.210
+
+networks:
+  iroha-explorer-testnet:
+    name: iroha-explorer-testnet
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.10.191.0/24
 
 volumes:
-  iroha-a-testnet:
-    external: true
-networks:
-  iroha-testnet:
-    external: true
+  iroha-a-explorer-testnet:
+    name: iroha-a-explorer-testnet
+  iroha-b-explorer-testnet:
+    name: iroha-b-explorer-testnet
+  iroha-c-explorer-testnet:
+    name: iroha-c-explorer-testnet
+  iroha-postgres:
+    name: iroha-postgres
+  iroha-explorer-testnet:
+    name: iroha-explorer-testnet

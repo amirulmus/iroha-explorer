@@ -26,9 +26,8 @@ trap "pkill -SIGTERM node ; sleep 5 ; exit 0" SIGTERM SIGINT
 
 NODE_ENV=${NODE_ENV:-production}
 IP_EXPLORER=${IP_EXPLORER:-0.0.0.0}
-PORT_EXPLORER=${PORT_EXPLORER:-3900}
+PORT_EXPLORER=${PORT_EXPLORER:-3920}
 PATH_IROHA=${PATH_IROHA:-/tmp/iroha/}
-POSTGRES_HOST_IROHA=${POSTGRES_HOST_IROHA:-postgres.diva.local:5432}
 
 # wait a bit to give postgres and iroha some time to get online
 sleep 10

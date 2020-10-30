@@ -2,33 +2,55 @@
 
 Explore any Iroha Blockchain (https://iroha.readthedocs.io/en/master/).
 
+Demo of the DIVA Iroha Blockchain explorer: https://testnet.diva.exchange
+
 ## Get Started 
 
 ### Docker Compose
 
-At the current level of development (alpha) it is advisable to use the project https://codeberg.org/diva.exchange/diva-dockerized to get a local Iroha Testnet within containers up and running. This Iroha Explorer is easy to use with the Testnet.
+To start a preconfigured local Iroha make sure you have "Docker Compose" installed (https://docs.docker.com/compose/install/). Check your Docker Compose installation by executing `docker-compose --version` in a terminal.
+
+Clone the code into a folder of your choice, like:
+```
+git clone -b master --depth=1 https://codeberg.org/diva.exchange/iroha-explorer.git
+cd iroha-explorer
+```
+
+Start the local testnet and the explorer:
+```
+sudo docker-compose up -d
+```
+
+Now visit http://localhost:3922.
+
+Stop the local testnet and the explorer:
+```
+sudo docker-compose down --volumes
+```
 
 ### Build from Source
 
-The code is in alpha (unstable, prototype stage, yet working). It has been developed on Linux and NodeJS v12.
-Therefore it is a requisite to have NodeJS available.
+The explorer has been developed on Linux and NodeJS v12. Therefore it is a requisite to have NodeJS available.
 
 Clone the code into a folder of your choice, like:
 
 ```
-git clone -b master https://codeberg.org/diva.exchange/iroha-explorer.git
+git clone -b master --depth=1 https://codeberg.org/diva.exchange/iroha-explorer.git
 cd iroha-explorer
 ```
 
-Prepare your environment:
+Prepare your environment (prerequisites):
 
-* A local IP and PORT is needed to run the Explorer, like 127.0.0.1:3900 (default settings)
-* The Postgres database of Iroha must be accessible to the NodeJS process.
+* Iroha postgres database must be accessible to the explorer process
+* Iroha blockstore must be accessible to the explorer process
+* By default, the explorer will run on 0.0.0.0:3920
 
-Now start the explorer (set the enviroment variables according to your environment):
+Take a close look at `./docker-compose.yml`. Within this docker-compose configuration file the prerequisites are fulfilled by defining a local Iroha testnet.    
+
+Install and start the explorer using npm:
 ```
 npm i
-IP=127.0.0.1 PORT=3900 PATH_IROHA=/tmp/iroha/ node -r esm app/main.js
+npm start
 ```
 
 ## Contact the Developers
