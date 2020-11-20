@@ -22,13 +22,14 @@
 'use strict'
 
 import { IrohaExplorer } from './src/iroha-explorer.js'
+import path from 'path'
 
 (async () => {
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
-  const port = process.env.PORT_EXPLORER || 3920
-  const path = process.env.PATH_IROHA || '/tmp/iroha/'
+  const port = process.env.PORT_EXPLORER || 3921
+  const pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
 
-  const explorer = await IrohaExplorer.make(ip, port, path)
+  const explorer = await IrohaExplorer.make(ip, port, pathIroha)
 
   for (const sig of ['SIGINT', 'SIGTERM']) {
     process.once(sig, () => {

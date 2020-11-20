@@ -26,6 +26,7 @@ import dateFormat from 'dateformat'
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
+import net from 'net'
 import ws from 'ws'
 
 import { Logger } from '@diva.exchange/diva-logger'
@@ -81,7 +82,7 @@ export class IrohaExplorer {
         this._webSocket.delete(id)
       })
       ws.on('error', (error) => {
-        Logger.error(error)
+        Logger.warn('websocket terminated').trace(error)
         ws.terminate()
       })
     })
@@ -176,26 +177,30 @@ export class IrohaExplorer {
       // load the config file
       Logger.info('Reading config from: ' + path.join(this._pathData, 'config.json'))
       config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
-    } catch (error) {
-      Logger.warn(error)
-      setTimeout(() => { this._connectPostgres() }, 30000)
-      return
-    }
+      const socket = net.connect({ port: config.database.port, host: config.database.host }, () => {
+        socket.end()
+        this._dbClient = new Client({
+          host: config.database.host,
+          port: config.database.port,
+          database: config.database['working database'],
+          user: config.database.user,
+          password: config.database.password
+        })
 
-    this._dbClient = new Client({
-      host: config.database.host,
-      port: config.database.port,
-      database: config.database['working database'],
-      user: config.database.user,
-      password: config.database.password
-    })
-
-    this._dbClient.connect()
-      .then(() => {
-        // only after a successful connection attach an error handler
-        this._dbClient.once('error', (error) => this._errorPostgres(error))
+        this._dbClient.connect()
+          .then(() => {
+            // only after a successful connection attach an error handler
+            this._dbClient.once('error', (error) => {
+              this._errorPostgres(error)
+            })
+          })
+          .catch((error) => {
+            this._errorPostgres(error)
+          })
       })
-      .catch((error) => this._errorPostgres(error))
+    } catch (error) {
+      this._errorPostgres(error)
+    }
   }
 
   /**
@@ -203,8 +208,13 @@ export class IrohaExplorer {
    * @private
    */
   _errorPostgres (error) {
-    Logger.warn(error)
-    delete this._dbClient
+    if (error) {
+      Logger.warn('postgres error. will try to reconnect.').trace(error)
+    }
+    if (this._dbClient) {
+      this._dbClient.end()
+      delete this._dbClient
+    }
     setTimeout(() => { this._connectPostgres() }, 30000)
   }
 
@@ -216,8 +226,9 @@ export class IrohaExplorer {
    */
   _routeHandler (req, res, next) {
     let data = null
-    switch (req.path) {
-      case '/':
+    const _p = req.path.replace(/\/+$/, '')
+    switch (_p) {
+      case '':
       case '/ui/blocks':
         res.render('blocks')
         break
@@ -325,7 +336,7 @@ export class IrohaExplorer {
           this._mapBlockCache.set(key,
             dateFormat(Math.floor(json.blockV1.payload.createdTime || 1), 'dd/mmm/yyyy HH:MM:ss', true))
         } catch (error) {
-          Logger.warn('_getBlocks() - json').warn(error)
+          Logger.warn('_getBlocks json error').trace(error)
         }
       }
       if (filter.length < 3 || (new RegExp(filter, 'i')).test(fs.readFileSync(key))) {
@@ -349,7 +360,7 @@ export class IrohaExplorer {
         html: html
       }
     }).catch((error) => {
-      Logger.warn('_getBlocks() - Promise').warn(error)
+      Logger.trace('_getBlocks failed').trace(error)
     })
   }
 
@@ -371,7 +382,7 @@ export class IrohaExplorer {
         }
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getArrayBlockFile failed').trace(error)
     }
     return sorted ? arrayNameFile : arrayNameFile.sort()
   }
@@ -385,7 +396,7 @@ export class IrohaExplorer {
     try {
       return JSON.parse(fs.readFileSync(path.join(this._pathBlockstore, nameFile)))
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getBlock failed').trace(error)
       return false
     }
   }
@@ -410,7 +421,7 @@ export class IrohaExplorer {
         html: html
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getPeers failed').trace(error)
       throw new Error(error)
     }
   }
@@ -435,7 +446,7 @@ export class IrohaExplorer {
         html: html
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getDomains failed').trace(error)
       throw new Error(error)
     }
   }
@@ -460,7 +471,7 @@ export class IrohaExplorer {
         html: html
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getRoles failed').trace(error)
       throw new Error(error)
     }
   }
@@ -485,7 +496,7 @@ export class IrohaExplorer {
         html: html
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getAccounts failed').trace(error)
       throw new Error(error)
     }
   }
@@ -510,7 +521,7 @@ export class IrohaExplorer {
         html: html
       }
     } catch (error) {
-      Logger.warn(error)
+      Logger.warn('_getAssets failed').trace(error)
       throw new Error(error)
     }
   }
