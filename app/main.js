@@ -26,7 +26,7 @@ import path from 'path'
 
 (async () => {
   const ip = process.env.IP_EXPLORER || '0.0.0.0'
-  const port = process.env.PORT_EXPLORER || 3921
+  const port = process.env.PORT_EXPLORER || 3920
   const pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
 
   const explorer = await IrohaExplorer.make(ip, port, pathIroha)

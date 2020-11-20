@@ -33,7 +33,7 @@ services:
         target: /var/lib/postgresql/data/
     networks:
       network.diva.local:
-        ipv4_address: 172.20.101.2
+        ipv4_address: 172.29.101.2
 
   testnet-a.diva.local:
     container_name: testnet-a.diva.local
@@ -49,11 +49,11 @@ services:
         target: /opt/iroha
     networks:
       network.diva.local:
-        ipv4_address: 172.20.101.3
+        ipv4_address: 172.29.101.3
     extra_hosts:
-      - testnet-a.diva.i2p:172.20.101.3
-      - testnet-b.diva.i2p:172.20.101.4
-      - testnet-c.diva.i2p:172.20.101.5
+      - testnet-a.diva.i2p:172.29.101.3
+      - testnet-b.diva.i2p:172.29.101.4
+      - testnet-c.diva.i2p:172.29.101.5
 
   testnet-b.diva.local:
     container_name: testnet-b.diva.local
@@ -69,11 +69,11 @@ services:
         target: /opt/iroha
     networks:
       network.diva.local:
-        ipv4_address: 172.20.101.4
+        ipv4_address: 172.29.101.4
     extra_hosts:
-      - testnet-a.diva.i2p:172.20.101.3
-      - testnet-b.diva.i2p:172.20.101.4
-      - testnet-c.diva.i2p:172.20.101.5
+      - testnet-a.diva.i2p:172.29.101.3
+      - testnet-b.diva.i2p:172.29.101.4
+      - testnet-c.diva.i2p:172.29.101.5
 
   testnet-c.diva.local:
     container_name: testnet-c.diva.local
@@ -89,28 +89,26 @@ services:
         target: /opt/iroha
     networks:
       network.diva.local:
-        ipv4_address: 172.20.101.5
+        ipv4_address: 172.29.101.5
     extra_hosts:
-      - testnet-a.diva.i2p:172.20.101.3
-      - testnet-b.diva.i2p:172.20.101.4
-      - testnet-c.diva.i2p:172.20.101.5
+      - testnet-a.diva.i2p:172.29.101.3
+      - testnet-b.diva.i2p:172.29.101.4
+      - testnet-c.diva.i2p:172.29.101.5
 
   explorer.diva.local:
     container_name: explorer.diva.local
     image: divax/iroha-explorer:latest
     restart: unless-stopped
     environment:
-      IP_EXPLORER: 0.0.0.0
-      PORT_EXPLORER: 3920
       PATH_IROHA: /tmp/iroha/
     ports:
-      - 3920:3920
+      - 3929:3920
     volumes:
       - testnet-c.diva.local:/tmp/iroha/:ro
       - explorer.diva.local:/home/node/
     networks:
       network.diva.local:
-        ipv4_address: 172.20.101.100
+        ipv4_address: 172.29.101.100
 
 networks:
   network.diva.local:
@@ -118,7 +116,7 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.20.101.0/24
+        - subnet: 172.29.101.0/24
 
 volumes:
   testnet-a.diva.local:

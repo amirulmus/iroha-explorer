@@ -29,7 +29,4 @@ IP_EXPLORER=${IP_EXPLORER:-0.0.0.0}
 PORT_EXPLORER=${PORT_EXPLORER:-3920}
 PATH_IROHA=${PATH_IROHA:-/tmp/iroha/}
 
-# wait a bit to give postgres and iroha some time to get online
-sleep 10
-
 node -r esm app/main.js 2>&1

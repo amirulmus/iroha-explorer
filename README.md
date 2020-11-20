@@ -21,7 +21,7 @@ Start the local testnet and the explorer:
 sudo docker-compose up -d
 ```
 
-Now visit http://localhost:3922.
+Now visit http://localhost:3929.
 
 Stop the local testnet and the explorer:
 ```
