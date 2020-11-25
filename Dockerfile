@@ -38,7 +38,6 @@ RUN cd /home/node/ \
 # 3920 explorer app
 EXPOSE 3920
 
-VOLUME [ "/home/node/" ]
 WORKDIR "/home/node/"
 USER "node"
 ENTRYPOINT ["/entrypoint.sh"]

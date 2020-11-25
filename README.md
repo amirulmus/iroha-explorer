@@ -21,7 +21,7 @@ Start the local testnet and the explorer:
 sudo docker-compose up -d
 ```
 
-Now visit http://localhost:3929.
+Now access the user interface of the explorer on http://localhost:3929. The port 3229 got exposed through the configuration file "docker-compose.yml". Adapt the configuration to your local needs.
 
 Stop the local testnet and the explorer:
 ```
