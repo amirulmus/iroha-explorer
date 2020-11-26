@@ -90,7 +90,7 @@ export class IrohaExplorer {
     this._mapBlockCache = new Map()
 
     this._initFileWatcher()
-    this._connectPostgres()
+    this._testPostgres()
     this._pingWebsocket()
   }
 
@@ -112,9 +112,6 @@ export class IrohaExplorer {
    * @returns {Promise<any>}
    */
   shutdown () {
-    if (this._dbClient) {
-      this._dbClient.end()
-    }
     if (this._watcher) {
       this._watcher.close()
     }
@@ -171,7 +168,8 @@ export class IrohaExplorer {
   /**
    * @private
    */
-  _connectPostgres () {
+  _testPostgres () {
+    this._pgConfig = {}
     let config = {}
     try {
       // load the config file
@@ -179,24 +177,20 @@ export class IrohaExplorer {
       config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
       const socket = net.connect({ port: config.database.port, host: config.database.host }, () => {
         socket.end()
-        this._dbClient = new Client({
+        const conf = {
           host: config.database.host,
           port: config.database.port,
           database: config.database['working database'],
           user: config.database.user,
           password: config.database.password
-        })
+        }
+        try {
+          new Client(conf)
+        } catch (error) {
+          this._errorPostgres (error)
+        }
 
-        this._dbClient.connect()
-          .then(() => {
-            // only after a successful connection attach an error handler
-            this._dbClient.once('error', (error) => {
-              this._errorPostgres(error)
-            })
-          })
-          .catch((error) => {
-            this._errorPostgres(error)
-          })
+        this._pgConfig = conf
       })
     } catch (error) {
       this._errorPostgres(error)
@@ -211,11 +205,7 @@ export class IrohaExplorer {
     if (error) {
       Logger.warn('postgres error. will try to reconnect.').trace(error)
     }
-    if (this._dbClient) {
-      this._dbClient.end()
-      delete this._dbClient
-    }
-    setTimeout(() => { this._connectPostgres() }, 30000)
+    setTimeout(() => { this._testPostgres() }, 30000)
   }
 
   /**
@@ -402,13 +392,26 @@ export class IrohaExplorer {
   }
 
   /**
+   * @param sql
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _query(sql) {
+    const c = new Client(this._pgConfig)
+    await c.connect()
+    const data = await c.query(sql)
+    c.end()
+    return data
+  }
+
+  /**
    * @param q {string}
    * @returns {Promise<{filter: string, peers: *, html: any}>}
    * @private
    */
   async _getPeers (q = '') {
     try {
-      const data = await this._dbClient.query('SELECT * FROM peer')
+      const data = await this._query('SELECT * FROM peer')
       const html = await new Promise((resolve, reject) => {
         this._router.getApp().render('peerlist', { arrayPeer: data.rows }, (error, html) => {
           error ? reject(error) : resolve(html)
@@ -433,7 +436,7 @@ export class IrohaExplorer {
    */
   async _getDomains (q = '') {
     try {
-      const data = await this._dbClient.query('SELECT * FROM domain')
+      const data = await this._query('SELECT * FROM domain')
       const html = await new Promise((resolve, reject) => {
         this._router.getApp().render('domainlist', { arrayDomain: data.rows }, (error, html) => {
           error ? reject(error) : resolve(html)
@@ -458,7 +461,7 @@ export class IrohaExplorer {
    */
   async _getRoles (q = '') {
     try {
-      const data = await this._dbClient.query('SELECT * FROM role LEFT JOIN role_has_permissions USING (role_id)')
+      const data = await this._query('SELECT * FROM role LEFT JOIN role_has_permissions USING (role_id)')
       const html = await new Promise((resolve, reject) => {
         this._router.getApp().render('rolelist', { arrayRole: data.rows }, (error, html) => {
           error ? reject(error) : resolve(html)
@@ -483,7 +486,7 @@ export class IrohaExplorer {
    */
   async _getAccounts (q = '') {
     try {
-      const data = await this._dbClient.query('SELECT * FROM account')
+      const data = await this._query('SELECT * FROM account')
       const html = await new Promise((resolve, reject) => {
         this._router.getApp().render('accountlist', { arrayAccount: data.rows }, (error, html) => {
           error ? reject(error) : resolve(html)
@@ -508,7 +511,7 @@ export class IrohaExplorer {
    */
   async _getAssets (q = '') {
     try {
-      const data = await this._dbClient.query('SELECT * FROM asset')
+      const data = await this._query('SELECT * FROM asset')
       const html = await new Promise((resolve, reject) => {
         this._router.getApp().render('assetlist', { arrayAsset: data.rows }, (error, html) => {
           error ? reject(error) : resolve(html)
