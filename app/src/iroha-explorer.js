@@ -43,7 +43,7 @@ export class IrohaExplorer {
    * @throws {Error}
    * @public
    */
-  static async make (ip, port, pathIroha) {
+  static make (ip, port, pathIroha) {
     return new IrohaExplorer(ip, port, pathIroha)
   }
 
@@ -74,6 +74,8 @@ export class IrohaExplorer {
     // attach a websocket server
     this._webSocket = new Map()
     this._idWebSocket = 1
+
+    /** @type {ws.Server} */
     this._webSocketServer = new ws.Server({ server: this._server })
     this._webSocketServer.on('connection', (ws) => {
       const id = this._idWebSocket++
@@ -86,8 +88,9 @@ export class IrohaExplorer {
         ws.terminate()
       })
     })
-
-    this._mapBlockCache = new Map()
+    this._webSocketServer.on('close', () => {
+      Logger.info('WebsocketServer closing')
+    })
 
     this._initFileWatcher()
     this._testPostgres()
@@ -111,16 +114,20 @@ export class IrohaExplorer {
   /**
    * @returns {Promise<any>}
    */
-  shutdown () {
+  async shutdown () {
     if (this._watcher) {
       this._watcher.close()
     }
-
-    return new Promise((resolve) => {
-      this._webSocketServer.close(() => {
-        this._server.close(() => { resolve() })
+    if (this._webSocketServer) {
+      await new Promise((resolve) => {
+        this._webSocketServer.close(resolve)
       })
-    })
+    }
+    if (this._server) {
+      await new Promise((resolve) => {
+        this._server.close(resolve)
+      })
+    }
   }
 
   /**
@@ -130,29 +137,42 @@ export class IrohaExplorer {
     if (this._watcher) {
       this._watcher.close()
     }
-    if (!this._getArrayBlockFile(false, 1).length) {
-      setTimeout(() => { this._initFileWatcher() }, 30000)
-      return
-    }
+
+    this._mapBlockCache = new Map()
 
     this._watcher = fs.watch(this._pathBlockstore, (eventType, nameFile) => {
-      let dt = ''
       switch (eventType) {
         case 'change':
-          dt = dateFormat(fs.statSync(path.join(this._pathBlockstore, nameFile)).mtime.toUTCString(),
-            'dd/mmm/yyyy HH:MM:ss', true)
-          this._router.getApp().render('blocklist', { arrayBlock: [[nameFile, dt]] }, (error, html) => {
-            if (!error) {
-              this._webSocket.forEach((ws) => {
-                ws.send(JSON.stringify({
-                  cmd: 'block',
-                  blocks: [[nameFile, dt]],
-                  height: parseInt(nameFile),
-                  html: html
-                }))
+          fs.readFile(path.join(this._pathBlockstore, nameFile), (error, data) => {
+            if (error) {
+              Logger.warn('_watcher.readFile failed').trace(error)
+              return
+            }
+            try {
+              const objBlock = JSON.parse(data.toString())
+              objBlock.id = nameFile
+              objBlock.dateTimeFormatted = dateFormat(Math.floor(objBlock.blockV1.payload.createdTime || 1),
+                'dd/mmm/yyyy HH:MM:ss', true)
+              objBlock.lengthTransactions = objBlock.blockV1.payload.transactions.length
+              this._mapBlockCache.set(nameFile, objBlock)
+
+              this._router.getApp().render('blocklist', { blocks: [objBlock] }, (error, html) => {
+                if (error) {
+                  Logger.warn('_watcher.render failed').trace(error)
+                  return
+                }
+                this._webSocket.forEach((ws) => {
+                  ws.send(JSON.stringify({
+                    cmd: 'block',
+                    id: objBlock.id,
+                    block: objBlock,
+                    height: Number(nameFile),
+                    html: html
+                  }))
+                })
               })
-            } else {
-              Logger.warn(error)
+            } catch (error) {
+              Logger.warn('_watcher.change failed').trace(error)
             }
           })
           break
@@ -163,6 +183,21 @@ export class IrohaExplorer {
           break
       }
     })
+
+    for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
+      try {
+        const objBlock = JSON.parse((fs.readFileSync(path.join(this._pathBlockstore, nameFile))).toString())
+        objBlock.id = nameFile
+        // 88322155000 = 1972-10-19 05:55:55 - just a great date/time for a genesis block
+        objBlock.dateTimeFormatted = dateFormat(Math.floor(objBlock.blockV1.payload.createdTime || 88322155000),
+          'dd/mmm/yyyy HH:MM:ss', true)
+        objBlock.lengthTransactions =
+          objBlock.blockV1.payload.transactions ? objBlock.blockV1.payload.transactions.length : 0
+        this._mapBlockCache.set(nameFile, objBlock)
+      } catch (error) {
+        Logger.warn(`_initCache: could not parse ${nameFile}`)
+      }
+    }
   }
 
   /**
@@ -185,9 +220,10 @@ export class IrohaExplorer {
           password: config.database.password
         }
         try {
-          new Client(conf)
+          const _c = new Client(conf)
+          _c.end()
         } catch (error) {
-          this._errorPostgres (error)
+          this._errorPostgres(error)
         }
 
         this._pgConfig = conf
@@ -226,7 +262,7 @@ export class IrohaExplorer {
         this._getBlocks(
           parseInt(req.query.pagesize || 0),
           parseInt(req.query.page || 0),
-          (req.query.q || '').replace(/[^\w\-+*[\]().,;:]/gi, '')
+          (req.query.q || '').replace(/[^\w\-+*\[\]/().,;: ]/gi, '')
         )
           .then((data) => {
             res.json(data)
@@ -302,79 +338,58 @@ export class IrohaExplorer {
    * @param sizePage {number}
    * @param page {number}
    * @param filter {string}
-   * @returns {Promise<{blocks: [any, any][], sizePage: number, html: any, page: number, height: number}>}
+   * @returns {Promise<*>}
    * @private
    */
-  _getBlocks (sizePage = 0, page = 0, filter = '') {
+  async _getBlocks (sizePage = 0, page = 1, filter = '') {
     // sorting
-    let arrayNameFile = this._getArrayBlockFile(true).reverse()
+    let arrayId = Array.from(this._mapBlockCache.keys()).sort().reverse()
+
+    // filtering
+    let map = filter !== '' ? new Map() : this._mapBlockCache
+    if (filter !== '') {
+      const re = filter.length > 2 ? new RegExp(filter, 'i') : false
+      arrayId.forEach(async (id) => {
+        if (!re || re.test(JSON.stringify(this._mapBlockCache.get(id)))) {
+          map.set(id, this._mapBlockCache.get(id))
+        }
+      })
+    }
+    arrayId = Array.from(map.keys()).sort().reverse()
 
     // paging
     // @TODO hard coded upper limit
-    const upperLimit = arrayNameFile.length > 1000 ? 1000 : arrayNameFile.length
+    const upperLimit = arrayId.length > 500 ? 500 : arrayId.length
     sizePage = sizePage > 0 && sizePage <= upperLimit ? sizePage : upperLimit
-    page = page > 0 && page * sizePage < upperLimit + sizePage ? page : 0
-
-    arrayNameFile = arrayNameFile.slice(page * sizePage, (page + 1) * sizePage)
-
-    const map = new Map()
-    arrayNameFile.forEach((nameFile) => {
-      const key = path.join(this._pathBlockstore, nameFile)
-      if (!this._mapBlockCache.has(key)) {
-        try {
-          const json = JSON.parse(fs.readFileSync(key))
-          this._mapBlockCache.set(key,
-            dateFormat(Math.floor(json.blockV1.payload.createdTime || 1), 'dd/mmm/yyyy HH:MM:ss', true))
-        } catch (error) {
-          Logger.warn('_getBlocks json error').trace(error)
-        }
-      }
-      if (filter.length < 3 || (new RegExp(filter, 'i')).test(fs.readFileSync(key))) {
-        map.set(nameFile, this._mapBlockCache.get(key))
-      }
-    })
-
-    return new Promise((resolve, reject) => {
-      this._router.getApp().render('blocklist', { arrayBlock: Array.from(map) }, (error, html) => {
-        if (!error) {
-          resolve(html)
-        } else {
-          reject(error)
-        }
+    const pageMax = Math.ceil(arrayId.length / sizePage)
+    page = page < 1 ? pageMax : (page < pageMax ? page : pageMax)
+    if (arrayId.length > sizePage) {
+      arrayId = arrayId.slice((page - 1) * sizePage, page * sizePage)
+      map = new Map()
+      arrayId.forEach(async (id) => {
+        map.set(id, this._mapBlockCache.get(id))
       })
-    }).then((html) => {
+    }
+
+    try {
+      const arrayBlocks = Array.from(map.values())
+      const html = await new Promise((resolve, reject) => {
+        this._router.getApp().render('blocklist', { blocks: arrayBlocks }, (error, html) => {
+          error ? reject(error) : resolve(html)
+        })
+      })
       return {
-        blocks: Array.from(map),
+        blocks: arrayBlocks,
         filter: filter,
-        height: arrayNameFile.length,
+        page: page,
+        pages: pageMax,
+        sizePage: sizePage,
+        height: this._mapBlockCache.size,
         html: html
       }
-    }).catch((error) => {
-      Logger.trace('_getBlocks failed').trace(error)
-    })
-  }
-
-  /**
-   * @param sorted {boolean}
-   * @param limit {number}
-   * @returns {Array}
-   * @private
-   */
-  _getArrayBlockFile (sorted = false, limit = 0) {
-    const arrayNameFile = []
-    try {
-      for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
-        if (nameFile.match(/^[0-9]{16}$/)) {
-          arrayNameFile.push(nameFile)
-          if (limit && arrayNameFile.length === limit) {
-            break
-          }
-        }
-      }
     } catch (error) {
-      Logger.warn('_getArrayBlockFile failed').trace(error)
+      Logger.trace('_getBlocks failed').trace(error)
     }
-    return sorted ? arrayNameFile : arrayNameFile.sort()
   }
 
   /**
@@ -396,7 +411,7 @@ export class IrohaExplorer {
    * @returns {Promise<void>}
    * @private
    */
-  async _query(sql) {
+  async _query (sql) {
     const c = new Client(this._pgConfig)
     await c.connect()
     const data = await c.query(sql)

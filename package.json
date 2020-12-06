@@ -1,6 +1,6 @@
 {
   "name": "@diva.exchange/iroha-explorer",
-  "version": "0.5.7",
+  "version": "0.6.0",
   "description": "diva - Distributed value exchange upholding security, reliability and privacy",
   "keywords": [
     "iroha",
@@ -20,25 +20,25 @@
   "scripts": {
     "lint": "eslint --fix app/src",
     "css-build": "node-sass --omit-source-map-url --output-style compressed app/static/sass/iroha-explorer.scss app/static/css/iroha-explorer.min.css",
-    "start-dev": "NODE_ENV=development LOG_LEVEL=trace node -r esm app/main.js",
-    "start": "NODE_ENV=production LOG_LEVEL=info node -r esm app/main.js",
+    "start-dev": "NODE_ENV=development node -r esm app/main.js",
+    "start": "NODE_ENV=production node -r esm app/main.js",
     "test": "nyc mocha"
   },
   "dependencies": {
     "@diva.exchange/diva-logger": "^1.0.0",
     "compression": "^1.7.4",
-    "dateformat": "^4.0.0",
+    "dateformat": "^4.3.1",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "http-errors": "^1.8.0",
     "pg": "^8.5.1",
     "pug": "^3.0.0",
-    "ws": "^7.4.0"
+    "ws": "^7.4.1"
   },
   "devDependencies": {
     "bulma": "^0.9.1",
     "chai": "^4.2.0",
-    "eslint": "^7.14.0",
+    "eslint": "^7.15.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
