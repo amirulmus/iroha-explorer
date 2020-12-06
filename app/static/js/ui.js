@@ -37,6 +37,12 @@ function __initUi () {
 }
 
 class Ui {
+
+  /**
+   * @type {number}
+   */
+  static page = 0
+
   /**
    * @public
    */
@@ -62,7 +68,9 @@ class Ui {
     switch (window.location.pathname) {
       case '/':
       case '/ui/blocks':
-        Ui._fetchBlocks()
+        const q = encodeURIComponent(u('input.search').first().value.toString().trim())
+        const pagesize = u('select[name=pagesize]').first().value
+        Ui._fetchBlocks(q, 1, pagesize)
         break
       case '/ui/peers-domains-roles':
         Ui._fetchPeers()
@@ -80,16 +88,33 @@ class Ui {
 
   /**
    * @param q
+   * @param page
+   * @param pagesize
    * @private
    */
-  static _fetchBlocks (q = '') {
-    fetch('/blocks?q=' + q)
+  static _fetchBlocks (q = '', page = 1, pagesize = 0) {
+    fetch('/blocks?q=' + q + '&page=' + page + '&pagesize=' + pagesize)
       .then((response) => {
         return response.json()
       })
       .then((response) => {
+        Ui.page = response.page || 1
+        if (Ui.page === 1) {
+          u('.paging a.first').addClass('is-hidden')
+          u('.paging a.previous').addClass('is-hidden')
+        } else {
+          u('.paging a.first').removeClass('is-hidden')
+          u('.paging a.previous').removeClass('is-hidden')
+        }
+        if (!response.pages || Ui.page === response.pages) {
+          u('.paging a.last').addClass('is-hidden')
+          u('.paging a.next').addClass('is-hidden')
+        } else {
+          u('.paging a.last').removeClass('is-hidden')
+          u('.paging a.next').removeClass('is-hidden')
+        }
         u('#heightBlockchain').text(response.height)
-        u('#search input').first().value = response.filter
+        u('#search input.search').first().value = response.filter
         u('table.blocks tbody').html(response.html)
         Ui._attachEvents()
       })
@@ -204,11 +229,22 @@ class Ui {
         switch (obj.cmd || '') {
           case 'block':
             u('#heightBlockchain').text(obj.height)
-            u('table.blocks tbody').prepend(obj.html)
+            const q = encodeURIComponent(u('input.search').first().value)
+            if (q === '' && Ui.page === 1) {
+              if (u('table.blocks tbody tr#b' + Number(obj.id)).length) {
+                u('table.blocks tbody tr#bd' + Number(obj.id)).remove()
+                u('table.blocks tbody tr#b' + Number(obj.id)).replace(obj.html)
+              } else {
+                u('table.blocks tbody').prepend(obj.html)
+              }
+
+              // maintain page size, remove last two rows
+              u('table.blocks tbody tr').last().remove()
+              u('table.blocks tbody tr').last().remove()
+            }
             Ui._attachEvents()
             break
           default:
-            Logger.warn(objData)
             break
         }
       } catch (error) {
@@ -223,7 +259,38 @@ class Ui {
   static _attachEvents () {
     // search
     u('#search').off('submit').handle('submit', async () => {
-      Ui._fetchBlocks(encodeURIComponent(u('input.search').first().value))
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, 1, pagesize)
+    })
+
+    // pagesize
+    u('select[name=pagesize]').off('change').handle('change', async () => {
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, 1, pagesize)
+    })
+
+    // paging
+    u('div.paging a.first').off('click').handle('click', async () => {
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, 1, pagesize)
+    })
+    u('div.paging a.previous').off('click').handle('click', async () => {
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, Ui.page - 1, pagesize)
+    })
+    u('div.paging a.next').off('click').handle('click', async () => {
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, Ui.page + 1, pagesize)
+    })
+    u('div.paging a.last').off('click').handle('click', async () => {
+      const q = encodeURIComponent(u('input.search').first().value)
+      const pagesize = u('select[name=pagesize]').first().value
+      Ui._fetchBlocks(q, -1, pagesize)
     })
 
     // load block data

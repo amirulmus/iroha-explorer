@@ -22,20 +22,20 @@
 'use strict'
 
 import { IrohaExplorer } from './src/iroha-explorer.js'
+import { Logger } from '@diva.exchange/diva-logger'
 import path from 'path'
 
-(async () => {
-  const ip = process.env.IP_EXPLORER || '0.0.0.0'
-  const port = process.env.PORT_EXPLORER || 3920
-  const pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
+Logger.setOptions({ name: 'IrohaExplorer', level: process.env.LOG_LEVEL })
 
-  const explorer = await IrohaExplorer.make(ip, port, pathIroha)
+const ip = process.env.IP_EXPLORER || '127.0.0.1'
+const port = process.env.PORT_EXPLORER || 3929
+const pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
 
-  for (const sig of ['SIGINT', 'SIGTERM']) {
-    process.once(sig, () => {
-      explorer.shutdown().then(() => {
-        process.exit(0)
-      })
-    })
-  }
-})()
+const _explorer = IrohaExplorer.make(ip, port, pathIroha)
+
+process.once('SIGINT', () => {
+  _explorer.shutdown().then(() => {
+    process.exit(0)
+  })
+})
