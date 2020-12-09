@@ -153,7 +153,8 @@ export class IrohaExplorer {
               objBlock.id = nameFile
               objBlock.dateTimeFormatted = dateFormat(Math.floor(objBlock.blockV1.payload.createdTime || 1),
                 'dd/mmm/yyyy HH:MM:ss', true)
-              objBlock.lengthTransactions = objBlock.blockV1.payload.transactions.length
+              objBlock.lengthTransactions =
+                objBlock.blockV1.payload.transactions ? objBlock.blockV1.payload.transactions.length : 0
               this._mapBlockCache.set(nameFile, objBlock)
 
               this._router.getApp().render('blocklist', { blocks: [objBlock] }, (error, html) => {
@@ -166,7 +167,7 @@ export class IrohaExplorer {
                     cmd: 'block',
                     id: objBlock.id,
                     block: objBlock,
-                    height: Number(nameFile),
+                    height: this._mapBlockCache.size,
                     html: html
                   }))
                 })
