@@ -36,28 +36,35 @@ export class IrohaExplorer {
   /**
    * Factory
    *
-   * @param ip {string}
-   * @param port {number}
-   * @param pathIroha {string}
+   * @param config {object}
    * @return {IrohaExplorer}
-   * @throws {Error}
    * @public
    */
-  static make (ip, port, pathIroha) {
-    return new IrohaExplorer(ip, port, pathIroha)
+  static make (config) {
+    return new IrohaExplorer(config)
   }
 
   /**
-   * @param ip {string}
-   * @param port {number}
-   * @param pathIroha {string}
+   * @param config {object}
+   * @throws {Error}
    * @private
    */
-  constructor (ip, port, pathIroha) {
-    this._ip = ip
-    this._port = port
-    this._pathData = path.join(pathIroha, 'data')
-    this._pathBlockstore = path.join(pathIroha, 'blockstore')
+  constructor (config) {
+    this._ip = config.ip
+    this._port = config.port
+    if (config.pathIroha) {
+      this._pathConfig = path.join(config.pathIroha, 'data', 'config.json')
+      this._pathBlockstore = path.join(config.pathIroha, 'blockstore')
+    } else if (config.pathConfig && config.pathBlockstore) {
+      this._pathConfig = config.pathConfig
+      this._pathBlockstore = config.pathBlockstore
+    }
+    if (!this._pathConfig || !fs.existsSync(this._pathConfig)) {
+      throw new Error(`Path to configuration file not found: ${this._pathConfig}`)
+    }
+    if (!this._pathBlockstore || !fs.existsSync(this._pathBlockstore)) {
+      throw new Error(`Path to blockstore not found: ${this._pathBlockstore}`)
+    }
 
     this._router = new Router((req, res, next) => { this._routeHandler(req, res, next) })
     this._router.getApp().set('port', this._port)
@@ -209,8 +216,8 @@ export class IrohaExplorer {
     let config = {}
     try {
       // load the config file
-      Logger.info('Reading config from: ' + path.join(this._pathData, 'config.json'))
-      config = JSON.parse(fs.readFileSync(path.join(this._pathData, 'config.json')))
+      Logger.info('Reading config from: ' + this._pathConfig)
+      config = JSON.parse(fs.readFileSync(this._pathConfig))
       const socket = net.connect({ port: config.database.port, host: config.database.host }, () => {
         socket.end()
         const conf = {
@@ -263,7 +270,7 @@ export class IrohaExplorer {
         this._getBlocks(
           parseInt(req.query.pagesize || 0),
           parseInt(req.query.page || 0),
-          (req.query.q || '').replace(/[^\w\-+*\[\]/().,;: ]/gi, '')
+          (req.query.q || '').replace(/[^\w\-+*[\]/().,;: ]/gi, '')
         )
           .then((data) => {
             res.json(data)

@@ -1,0 +1,86 @@
+#
+# Copyright (C) 2020 diva.exchange
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Author/Maintainer: Konrad Bächler <konrad@diva.exchange>
+#
+
+version: "3.7"
+services:
+  postgres.iroha.local:
+    container_name: postgres.iroha.local
+    image: postgres:10
+    command: -c max_prepared_transactions=100
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: iroha
+      POSTGRES_PASSWORD: iroha
+    volumes:
+      - postgres.iroha.local:/var/lib/postgresql/data/
+    networks:
+      network.iroha.local:
+        ipv4_address: 172.29.101.2
+
+  testnet.iroha.local:
+    container_name: testnet.iroha.local
+    image: hyperledger/iroha:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres.iroha.local
+    environment:
+      KEY: node0
+    ports:
+      - 50051:50051
+    volumes:
+      - blockstore-testnet.iroha.local:/tmp/block_store
+      - ${PWD}/example/data:/opt/iroha_data
+    networks:
+      network.iroha.local:
+        ipv4_address: 172.29.101.3
+
+  explorer.iroha.local:
+    container_name: explorer.iroha.local
+    image: divax/iroha-explorer:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres.iroha.local
+      - testnet.iroha.local
+    environment:
+      PATH_BLOCKSTORE: /tmp/block_store/
+      PATH_CONFIG: /opt/iroha_data/config.docker
+    ports:
+      - 3929:3920
+    volumes:
+      - blockstore-testnet.iroha.local:/tmp/block_store
+      - ${PWD}/example/data:/opt/iroha_data
+    networks:
+      network.iroha.local:
+        ipv4_address: 172.29.101.100
+
+networks:
+  network.iroha.local:
+    name: network.iroha.local
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.29.101.0/24
+
+volumes:
+  postgres.iroha.local:
+    name: postgres.iroha.local
+  blockstore-testnet.iroha.local:
+    name: blockstore-testnet.iroha.local
+  data-testnet.iroha.local:
+    name: data-testnet.iroha.local

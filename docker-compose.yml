@@ -35,7 +35,7 @@ services:
 
   testnet-a.diva.local:
     container_name: testnet-a.diva.local
-    image: divax/iroha:${TAG:-1.2.0-rc2}
+    image: divax/iroha:latest
     restart: unless-stopped
     depends_on:
       - postgres.diva.local
@@ -55,7 +55,7 @@ services:
 
   testnet-b.diva.local:
     container_name: testnet-b.diva.local
-    image: divax/iroha:${TAG:-1.2.0-rc2}
+    image: divax/iroha:latest
     restart: unless-stopped
     depends_on:
       - postgres.diva.local
@@ -75,7 +75,7 @@ services:
 
   testnet-c.diva.local:
     container_name: testnet-c.diva.local
-    image: divax/iroha:${TAG:-1.2.0-rc2}
+    image: divax/iroha:latest
     restart: unless-stopped
     depends_on:
       - postgres.diva.local

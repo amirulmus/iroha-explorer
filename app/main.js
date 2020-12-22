@@ -28,11 +28,15 @@ import path from 'path'
 process.env.LOG_LEVEL = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
 Logger.setOptions({ name: 'IrohaExplorer', level: process.env.LOG_LEVEL })
 
-const ip = process.env.IP_EXPLORER || '127.0.0.1'
-const port = process.env.PORT_EXPLORER || 3929
-const pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
+let config = {}
 
-const _explorer = IrohaExplorer.make(ip, port, pathIroha)
+config.ip = process.env.IP_EXPLORER || '127.0.0.1'
+config.port = process.env.PORT_EXPLORER || 3929
+config.pathIroha = process.env.PATH_IROHA || path.join(__dirname, '../iroha-stub/')
+config.pathBlockstore = process.env.PATH_BLOCKSTORE || ''
+config.pathConfig = process.env.PATH_CONFIG || ''
+
+const _explorer = IrohaExplorer.make(config)
 
 process.once('SIGINT', () => {
   _explorer.shutdown().then(() => {
