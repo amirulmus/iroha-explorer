@@ -16,12 +16,14 @@ git clone -b master --depth=1 https://codeberg.org/diva.exchange/iroha-explorer.
 cd iroha-explorer
 ```
 
+The configuration is found within `docker-compose.yml` and might be adapted to your local needs.
+
 Start the local testnet and the explorer:
 ```
 sudo docker-compose up -d
 ```
 
-Now access the user interface of the explorer on http://localhost:3929. The port 3929 got exposed through the configuration file "docker-compose.yml". Adapt the configuration to your local needs.
+Now access the user interface of the explorer on http://172.29.101.100:3929.
 
 Stop the local testnet and the explorer:
 ```
@@ -30,7 +32,7 @@ sudo docker-compose down --volumes
 
 ### More Examples
 
-Find additional examples to use with docker compose within the folder `example`.
+Find additional examples to use with docker compose within the folder `example`. See also dedicated [README](./example/README.md).
 
 ### Build from Source
 

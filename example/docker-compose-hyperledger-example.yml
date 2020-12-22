@@ -60,8 +60,6 @@ services:
     environment:
       PATH_BLOCKSTORE: /tmp/block_store/
       PATH_CONFIG: /opt/iroha_data/config.docker
-    ports:
-      - 3929:3920
     volumes:
       - blockstore-testnet.iroha.local:/tmp/block_store
       - ${PWD}/example/data:/opt/iroha_data
