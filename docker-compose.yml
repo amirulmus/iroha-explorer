@@ -40,7 +40,7 @@ services:
     depends_on:
       - postgres.diva.local
     environment:
-      NAME_CONTAINER_POSTGRES: postgres.diva.local
+      IP_POSTGRES: 172.29.101.2
       NAME_KEY: testnet-a
       BLOCKCHAIN_NETWORK: diva-local
     volumes:
@@ -60,7 +60,7 @@ services:
     depends_on:
       - postgres.diva.local
     environment:
-      NAME_CONTAINER_POSTGRES: postgres.diva.local
+      IP_POSTGRES: 172.29.101.2
       NAME_KEY: testnet-b
       BLOCKCHAIN_NETWORK: diva-local
     volumes:
@@ -80,7 +80,7 @@ services:
     depends_on:
       - postgres.diva.local
     environment:
-      NAME_CONTAINER_POSTGRES: postgres.diva.local
+      IP_POSTGRES: 172.29.101.2
       NAME_KEY: testnet-c
       BLOCKCHAIN_NETWORK: diva-local
     volumes:
