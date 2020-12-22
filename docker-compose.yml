@@ -105,6 +105,7 @@ services:
       - postgres.diva.local
       - n1.diva.local
     environment:
+      IP_EXPLORER: 0.0.0.0
       PATH_IROHA: /tmp/iroha/
     volumes:
       - n1.diva.local:/tmp/iroha/:ro

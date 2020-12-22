@@ -52,12 +52,12 @@ export class IrohaExplorer {
   constructor (config) {
     this._ip = config.ip
     this._port = config.port
-    if (config.pathIroha) {
-      this._pathConfig = path.join(config.pathIroha, 'data', 'config.json')
-      this._pathBlockstore = path.join(config.pathIroha, 'blockstore')
-    } else if (config.pathConfig && config.pathBlockstore) {
+    if (config.pathConfig && config.pathBlockstore) {
       this._pathConfig = config.pathConfig
       this._pathBlockstore = config.pathBlockstore
+    } else if (config.pathIroha) {
+      this._pathConfig = path.join(config.pathIroha, 'data', 'config.json')
+      this._pathBlockstore = path.join(config.pathIroha, 'blockstore')
     }
     if (!this._pathConfig || !fs.existsSync(this._pathConfig)) {
       throw new Error(`Path to configuration file not found: ${this._pathConfig}`)
