@@ -239,8 +239,10 @@ class Ui {
               }
 
               // maintain page size, remove last two rows
-              u('table.blocks tbody tr').last().remove()
-              u('table.blocks tbody tr').last().remove()
+              if (obj.height > u('select[name=pagesize]').first().value) {
+                u('table.blocks tbody tr').last().remove()
+                u('table.blocks tbody tr').last().remove()
+              }
             }
             Ui._attachEvents()
             break
