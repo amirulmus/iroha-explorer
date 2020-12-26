@@ -1,6 +1,6 @@
 {
   "name": "@diva.exchange/iroha-explorer",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "diva - Distributed value exchange upholding security, reliability and privacy",
   "keywords": [
     "iroha",
@@ -27,7 +27,7 @@
   "dependencies": {
     "@diva.exchange/diva-logger": "^1.0.0",
     "compression": "^1.7.4",
-    "dateformat": "^4.4.0",
+    "dateformat": "^4.4.1",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "http-errors": "^1.8.0",

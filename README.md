@@ -23,7 +23,7 @@ Start the local testnet and the explorer:
 sudo docker-compose up -d
 ```
 
-Now access the user interface of the explorer on http://172.29.101.100:3929.
+Now access the user interface of the explorer on http://172.29.101.100:3920.
 
 Stop the local testnet and the explorer:
 ```
@@ -32,7 +32,7 @@ sudo docker-compose down --volumes
 
 ### More Examples
 
-Find additional examples to use with docker compose within the folder `example`. See also dedicated [README](./example/README.md).
+Find additional examples to use with docker compose within the folder `example`. See also dedicated [README](https://codeberg.org/diva.exchange/iroha-explorer/src/example/README.md).
 
 ### Build from Source
 

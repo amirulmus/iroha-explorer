@@ -362,8 +362,8 @@ export class IrohaExplorer {
           map.set(id, this._mapBlockCache.get(id))
         }
       })
+      arrayId = Array.from(map.keys()).sort().reverse()
     }
-    arrayId = Array.from(map.keys()).sort().reverse()
 
     // paging
     // @TODO hard coded upper limit
@@ -373,11 +373,13 @@ export class IrohaExplorer {
     page = page < 1 ? pageMax : (page < pageMax ? page : pageMax)
     if (arrayId.length > sizePage) {
       arrayId = arrayId.slice((page - 1) * sizePage, page * sizePage)
-      map = new Map()
-      arrayId.forEach(async (id) => {
-        map.set(id, this._mapBlockCache.get(id))
-      })
     }
+
+    // important: keep reverse order
+    map = new Map()
+    arrayId.forEach(async (id) => {
+      map.set(id, this._mapBlockCache.get(id))
+    })
 
     try {
       const arrayBlocks = Array.from(map.values())
