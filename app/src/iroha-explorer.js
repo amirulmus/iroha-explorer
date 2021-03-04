@@ -148,51 +148,52 @@ export class IrohaExplorer {
     this._mapBlockCache = new Map()
 
     this._watcher = fs.watch(this._pathBlockstore, (eventType, nameFile) => {
-      switch (eventType) {
-        case 'change':
-          fs.readFile(path.join(this._pathBlockstore, nameFile), (error, data) => {
+      if (!nameFile) {
+        return this._initFileWatcher()
+      }
+      if (!nameFile.test(/^[\d]+$/)) {
+        return
+      }
+
+      fs.readFile(path.join(this._pathBlockstore, nameFile), (error, data) => {
+        if (error) {
+          Logger.warn('_watcher.readFile failed').trace(error)
+          return
+        }
+        try {
+          const objBlock = JSON.parse(data.toString())
+          objBlock.id = nameFile
+          objBlock.dateTimeFormatted = dateFormat(Math.floor(objBlock.blockV1.payload.createdTime || 1),
+            'dd/mmm/yyyy HH:MM:ss', true)
+          objBlock.lengthTransactions =
+            objBlock.blockV1.payload.transactions ? objBlock.blockV1.payload.transactions.length : 0
+          this._mapBlockCache.set(nameFile, objBlock)
+
+          this._router.getApp().render('blocklist', { blocks: [objBlock] }, (error, html) => {
             if (error) {
-              Logger.warn('_watcher.readFile failed').trace(error)
+              Logger.warn('_watcher.render failed').trace(error)
               return
             }
-            try {
-              const objBlock = JSON.parse(data.toString())
-              objBlock.id = nameFile
-              objBlock.dateTimeFormatted = dateFormat(Math.floor(objBlock.blockV1.payload.createdTime || 1),
-                'dd/mmm/yyyy HH:MM:ss', true)
-              objBlock.lengthTransactions =
-                objBlock.blockV1.payload.transactions ? objBlock.blockV1.payload.transactions.length : 0
-              this._mapBlockCache.set(nameFile, objBlock)
-
-              this._router.getApp().render('blocklist', { blocks: [objBlock] }, (error, html) => {
-                if (error) {
-                  Logger.warn('_watcher.render failed').trace(error)
-                  return
-                }
-                this._webSocket.forEach((ws) => {
-                  ws.send(JSON.stringify({
-                    cmd: 'block',
-                    id: objBlock.id,
-                    block: objBlock,
-                    height: this._mapBlockCache.size,
-                    html: html
-                  }))
-                })
-              })
-            } catch (error) {
-              Logger.warn('_watcher.change failed').trace(error)
-            }
+            this._webSocket.forEach((ws) => {
+              ws.send(JSON.stringify({
+                cmd: 'block',
+                id: objBlock.id,
+                block: objBlock,
+                height: this._mapBlockCache.size,
+                html: html
+              }))
+            })
           })
-          break
-        case 'rename':
-          if (!nameFile) {
-            return this._initFileWatcher()
-          }
-          break
-      }
+        } catch (error) {
+          Logger.warn('_watcher.change failed').trace(error)
+        }
+      })
     })
 
     for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
+      if (!nameFile.test(/^[\d]+$/)) {
+        continue
+      }
       try {
         const objBlock = JSON.parse((fs.readFileSync(path.join(this._pathBlockstore, nameFile))).toString())
         objBlock.id = nameFile
