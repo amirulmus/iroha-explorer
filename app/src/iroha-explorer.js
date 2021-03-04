@@ -151,7 +151,7 @@ export class IrohaExplorer {
       if (!nameFile) {
         return this._initFileWatcher()
       }
-      if (!nameFile.test(/^[\d]+$/)) {
+      if (!/^[\d]+$/.test(nameFile)) {
         return
       }
 
@@ -191,7 +191,7 @@ export class IrohaExplorer {
     })
 
     for (const nameFile of fs.readdirSync(this._pathBlockstore)) {
-      if (!nameFile.test(/^[\d]+$/)) {
+      if (!/^[\d]+$/.test(nameFile)) {
         continue
       }
       try {

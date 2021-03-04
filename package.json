@@ -1,6 +1,6 @@
 {
   "name": "@diva.exchange/iroha-explorer",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "diva - Distributed value exchange upholding security, reliability and privacy",
   "keywords": [
     "iroha",
