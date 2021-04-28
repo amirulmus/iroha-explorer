@@ -26,7 +26,7 @@ import createError from 'http-errors'
 import express from 'express'
 import path from 'path'
 
-import { Logger } from '@diva.exchange/diva-logger'
+import Logger from 'iroha-explorer'
 
 export class Router {
   /**
