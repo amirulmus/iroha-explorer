@@ -21,12 +21,8 @@
 
 'use strict'
 
-import { IrohaExplorer } from './src/iroha-explorer.js'
-import { Logger } from '@diva.exchange/diva-logger'
+import { Logger, IrohaExplorer } from './src/iroha-explorer.js'
 import path from 'path'
-
-process.env.LOG_LEVEL = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'trace')
-Logger.setOptions({ name: 'IrohaExplorer', level: process.env.LOG_LEVEL })
 
 let config = {}
 
